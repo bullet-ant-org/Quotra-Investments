@@ -1,6 +1,6 @@
 // c:\Users\Bullet Ant\Desktop\CODING\quotra\src\App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'; // Import useNavigate
 import Home from './layout/Home';
 import Login from './layout/LoginPage';
 

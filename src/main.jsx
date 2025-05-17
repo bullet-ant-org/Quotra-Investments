@@ -13,20 +13,32 @@ const RECAPTCHA_SITE_KEY = "6Lc9MT4rAAAAAEqxA9jgcy5bRmzx7X8oZEG25ND0";
 // Component to handle initial loading and CAPTCHA check
 const RootWithLoader = () => {
   const [showLoader, setShowLoader] = useState(true);
-  const [isCaptchaSolved, setIsCaptchaSolved] = useState(false); // State to track if CAPTCHA is solved
+  // Initialize captcha state from sessionStorage
+  const [isCaptchaSolved, setIsCaptchaSolved] = useState(
+    sessionStorage.getItem('captchaSolvedInSession') === 'true'
+  );
 
   useEffect(() => {
     // Simulate initial loading time
     const timer = setTimeout(() => setShowLoader(false), 3000); // 3 seconds delay
     return () => clearTimeout(timer);
   }, []);
+  
+  // Effect to clear sessionStorage on component unmount (optional, for strict cleanup)
+  // useEffect(() => {
+  //   return () => {
+  //     sessionStorage.removeItem('captchaSolvedInSession');
+  //   };
+  // }, []);
 
   // Handler for when the CAPTCHA is solved
   const handleCaptchaChange = (token) => {
     if (token) {
       setIsCaptchaSolved(true);
+      sessionStorage.setItem('captchaSolvedInSession', 'true'); // Store success in session
     } else {
       setIsCaptchaSolved(false); // Handle case where token expires or is reset
+      sessionStorage.removeItem('captchaSolvedInSession'); // Clear from session
     }
   };
 
@@ -35,14 +47,18 @@ const RootWithLoader = () => {
     return <CustomSpinner text="Loading Quotra..." />;
   }
 
-  if (!isCaptchaSolved) {
+  // Check isCaptchaSolved state, which is now aware of the session
+  if (!isCaptchaSolved) { 
     // Show CAPTCHA if loader is done and CAPTCHA is not solved
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <ReCAPTCHA
           sitekey={RECAPTCHA_SITE_KEY}
           onChange={handleCaptchaChange}
-          onExpired={() => setIsCaptchaSolved(false)} // Reset state if CAPTCHA expires
+          onExpired={() => {
+            setIsCaptchaSolved(false);
+            sessionStorage.removeItem('captchaSolvedInSession'); // Clear from session on expiry
+          }}
         />
       </div>
     );

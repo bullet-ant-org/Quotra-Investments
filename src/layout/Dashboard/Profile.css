@@ -28,7 +28,7 @@ svg.bi-person-circle {
 .table {
   overflow: hidden;
   background: #fff;
-  border-radius: 1.5rem !important;
+  border-radius: 1.1rem !important;
   border: none;
 }
 .table th, .table td {
@@ -51,7 +51,6 @@ svg.bi-person-circle {
 
 /* Buttons rounded */
 .btn, .btn-primary, .btn-outline-primary {
-  border-radius: 2rem !important;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
 }
@@ -65,21 +64,19 @@ svg.bi-person-circle {
 
 /* Dropdown menu rounded */
 .dropdown-menu {
-  border-radius: 1.25rem !important;
+  
   box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
 }
 
 /* Responsive tweaks for mobile */
 @media (max-width: 767px) {
-  .card, .modal-content, .table {
-    border-radius: 1rem !important;
-  }
+  
   .btn, .btn-primary, .btn-outline-primary {
-    border-radius: 1.25rem !important;
+    
   }
 }
 
 /* Optional: Soft background for the whole dashboard */
 body, .dashboard-container, .container {
-  background: #f6f8fa !important;
+  background: #ffffff !important;
 }

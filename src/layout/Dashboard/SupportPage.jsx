@@ -43,7 +43,7 @@ const SupportPage = () => {
       <div className="container">
         <div className="section-title text-center">
           <h1>Get in Touch</h1>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce vitae risus nec dui venenatis dignissim. Aenean vitae metus in augue pretium ultrices.</p>
+          <p>have any complaints? or any issues you need ironed out? contact us now</p>
         </div>
         <div className="row">
           <div className="col-lg-7">

@@ -1,0 +1,85 @@
+/* Make all cards, modals, tables, and images rounded */
+.card,
+.modal-content,
+.table,
+img.roundedCircle,
+.table th,
+.table td,
+.form-control,
+.dropdown-menu {
+  border-radius: 1.5rem !important;
+}
+
+/* Profile picture wrapper */
+#profile-pic-dropdown,
+img.roundedCircle,
+svg.bi-person-circle {
+  border-radius: 50% !important;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+  background: #f8f9fa;
+}
+
+/* Camera icon badge */
+#profile-pic-dropdown span {
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
+}
+
+/* Table styling */
+.table {
+  overflow: hidden;
+  background: #fff;
+  border-radius: 1.5rem !important;
+  border: none;
+}
+.table th, .table td {
+  border: none;
+  background: transparent;
+}
+
+/* Card shadow and padding for soft look */
+.card {
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+  border: none;
+  padding: 1rem 0.5rem;
+}
+
+/* Modal rounded and shadow */
+.modal-content {
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10);
+  border: none;
+}
+
+/* Buttons rounded */
+.btn, .btn-primary, .btn-outline-primary {
+  border-radius: 2rem !important;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Chart container rounded */
+.card .chartjs-render-monitor,
+.card .chart-container {
+  border-radius: 1.5rem !important;
+  overflow: hidden;
+}
+
+/* Dropdown menu rounded */
+.dropdown-menu {
+  border-radius: 1.25rem !important;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+}
+
+/* Responsive tweaks for mobile */
+@media (max-width: 767px) {
+  .card, .modal-content, .table {
+    border-radius: 1rem !important;
+  }
+  .btn, .btn-primary, .btn-outline-primary {
+    border-radius: 1.25rem !important;
+  }
+}
+
+/* Optional: Soft background for the whole dashboard */
+body, .dashboard-container, .container {
+  background: #f6f8fa !important;
+}

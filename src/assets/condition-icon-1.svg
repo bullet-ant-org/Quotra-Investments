@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 20.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 175 175" enable-background="new 0 0 175 175" xml:space="preserve">
+<g id="Background">
+</g>
+<g id="Header">
+</g>
+<g id="Menu">
+	<g>
+		<defs>
+			<rect id="SVGID_1_" x="-2798.046" y="-1379.435" width="1944.194" height="1080.98"/>
+		</defs>
+		<clipPath id="SVGID_2_">
+			<use xlink:href="#SVGID_1_"  overflow="visible"/>
+		</clipPath>
+		<g id="XMLID_499_" clip-path="url(#SVGID_2_)">
+		</g>
+	</g>
+	<g>
+		<defs>
+			<rect id="SVGID_13_" x="-248.623" y="-1468.665" width="1992.21" height="1107.677"/>
+		</defs>
+		<clipPath id="SVGID_4_">
+			<use xlink:href="#SVGID_13_"  overflow="visible"/>
+		</clipPath>
+		<g clip-path="url(#SVGID_4_)">
+			<g>
+				<defs>
+					<rect id="SVGID_19_" x="-55.483" y="-1468.665" width="1794.264" height="1104.162"/>
+				</defs>
+				<clipPath id="SVGID_6_">
+					<use xlink:href="#SVGID_19_"  overflow="visible"/>
+				</clipPath>
+			</g>
+			<g>
+				<defs>
+					<rect id="SVGID_21_" x="-55.483" y="-1468.665" width="1794.264" height="1104.162"/>
+				</defs>
+				<clipPath id="SVGID_8_">
+					<use xlink:href="#SVGID_21_"  overflow="visible"/>
+				</clipPath>
+			</g>
+		</g>
+		<g id="XMLID_1_" clip-path="url(#SVGID_4_)">
+		</g>
+	</g>
+	<circle fill="#48ACDD" cx="87.5" cy="87.5" r="86.963"/>
+	<g>
+		<g>
+			<g>
+				<g>
+					<path fill="none" stroke="#FFFFFF" stroke-width="3" stroke-miterlimit="10" d="M113.901,94.445
+						c-0.632,2.419-1.588,4.706-2.822,6.812l4.691,5.013c-2.503,3.762-5.737,6.995-9.498,9.498l-5.013-4.688
+						c-2.106,1.234-4.394,2.191-6.812,2.822v0.003l-0.228,6.862c-2.171,0.436-4.418,0.664-6.718,0.664
+						c-2.3,0-4.545-0.228-6.715-0.664l-0.228-6.862c-2.419-0.632-4.706-1.591-6.812-2.822l-5.013,4.688
+						c-3.764-2.503-6.998-5.737-9.501-9.501l4.691-5.013c-1.234-2.106-2.191-4.394-2.822-6.812h-0.003l-6.862-0.228
+						c-0.436-2.171-0.664-4.416-0.664-6.715c0-2.3,0.228-4.547,0.664-6.718l6.862-0.228h0.003c0.632-2.419,1.588-4.706,2.822-6.812
+						l-4.688-5.013c2.503-3.764,5.737-6.998,9.498-9.498l5.013,4.688c2.106-1.234,4.393-2.191,6.812-2.825l0.228-6.862
+						c2.171-0.436,4.416-0.664,6.715-0.664c2.3,0,4.547,0.228,6.718,0.664l0.228,6.862v0.003c2.419,0.632,4.706,1.588,6.812,2.825
+						l5.013-4.691c3.762,2.503,6.995,5.737,9.496,9.501l-4.688,5.011c1.234,2.106,2.191,4.394,2.822,6.812h0.003l6.862,0.228
+						c0.436,2.171,0.664,4.418,0.664,6.718c0,2.3-0.228,4.545-0.664,6.715l-6.862,0.228H113.901z"/>
+				</g>
+			</g>
+			<circle fill="none" stroke="#FFFFFF" stroke-width="3" stroke-miterlimit="10" cx="87.5" cy="87.5" r="16.66"/>
+		</g>
+		<path fill="none" stroke="#FFFFFF" stroke-width="3" stroke-miterlimit="10" d="M90.892,41.388
+			c23.951,1.737,42.842,21.718,42.842,46.112c0,24.589-19.195,44.694-43.417,46.15"/>
+		<path fill="none" stroke="#FFFFFF" stroke-width="3" stroke-miterlimit="10" d="M84.108,133.612
+			c-23.951-1.737-42.842-21.718-42.842-46.112c0-24.616,19.237-44.739,43.498-46.155"/>
+		<polyline fill="none" stroke="#FFFFFF" stroke-width="3" stroke-miterlimit="10" points="80.696,126.931 87.5,133.735 
+			80.696,140.539 		"/>
+		<polyline fill="none" stroke="#FFFFFF" stroke-width="3" stroke-miterlimit="10" points="94.304,48.069 87.5,41.265 
+			94.304,34.461 		"/>
+	</g>
+</g>
+</svg>

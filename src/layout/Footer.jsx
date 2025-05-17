@@ -2,7 +2,7 @@
 import React from 'react';
 // Option A: Import the logo (adjust path if needed)
 import logo from '../assets/logo-no-background1.png';
-import cert from '../assets/cert.jpg'
+import cert from '../assets/Cert.jpg'
 import cert2 from '../assets/1000002915.png'
 
 // Make sure you have Font Awesome included in your project for the icons!

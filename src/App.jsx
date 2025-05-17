@@ -24,7 +24,7 @@ import LoansCheckout from './layout/Dashboard/loansCheckout'; // Added this impo
 import AdminLayout from './Admin/AdminDashboard'; // This should be your Admin Layout
 import AdminOverview from './Admin/AdminLayouts/AdminOverview'; // The new overview page
 import AdminUsers from './Admin/AdminLayouts/Users';
-import AdminOrders from './Admin/AdminLayouts/orders';
+import AdminOrders from './Admin/AdminLayouts/Orders';
 import AdminPricing from './Admin/AdminLayouts/PricingAdmin';
 import AdminLoanTypes from './Admin/AdminLayouts/Loanstypes';
 import AdminSettingsPage from './Admin/AdminLayouts/AdminSettings'; // Import the new settings page

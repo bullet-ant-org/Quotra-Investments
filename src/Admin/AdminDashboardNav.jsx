@@ -106,6 +106,7 @@ const AdminDashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
     { to: 'pricing-admin', text: 'Manage Assets' }, // Links to AdminPricing
     { to: 'loan-types-admin', text: 'Manage Loan Types' }, // Links to AdminLoanTypes
     { to: 'settings', text: 'Site Settings' }, // Links to AdminSettingsPage
+    { to: '/admin/withdrawal-requests', text: 'Withdrawal Requests' },
   ];
 
   const renderNavLinks = (onClickHandler) =>

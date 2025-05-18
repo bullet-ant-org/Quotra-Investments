@@ -16,35 +16,29 @@ const LoansCheckout = () => {
   useEffect(() => {
     if (location.state && location.state.loan) {
       setLoanDetails(location.state.loan);
+      // Set application fee from the passed loan object
+      if (typeof location.state.loan.applicationFee === 'number') {
+        setApplicationFee(location.state.loan.applicationFee);
+      } else {
+        // Fallback or error if applicationFee is not defined on the loan object
+        setError('Application fee for this loan is not configured. Please contact support.');
+        console.warn("Loan object passed to LoansCheckout does not have a numeric applicationFee:", location.state.loan);
+      }
+      setIsLoading(false); // Loan details and fee are set (or error is set)
     } else {
       setError('Loan details not found. Please select a loan to apply for.');
       setIsLoading(false);
-      // Optionally navigate back or show a more prominent error
-      // navigate('/dashboard/loans');
       return;
     }
 
-    const fetchAdminSettings = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/adminSettings/globalAdminSettings`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch application fee settings.');
-        }
-        const settings = await response.json();
-        if (settings && typeof settings.loanApplicationFee === 'number') {
-          setApplicationFee(settings.loanApplicationFee);
-        } else {
-          throw new Error('Loan application fee is not configured by the admin.');
-        }
-      } catch (err) {
-        setError(err.message || 'Could not load application fee.');
-        console.error("Error fetching admin settings:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAdminSettings();
+    // Display the alert when the component mounts
+    // Moved the alert to only show if we successfully have loan details and an application fee
+    if (location.state && location.state.loan && typeof location.state.loan.applicationFee === 'number') {
+      window.alert(
+        "Important: The payment on the next page will be to a USDT (TRC20) wallet. " +
+        "Any transfer to another blockchain cannot be processed or verified."
+      );
+    }
   }, [location.state]);
 
   const handleProceedToPayment = () => {

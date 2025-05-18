@@ -1,14 +1,5 @@
 /* Make all cards, modals, tables, and images rounded */
-.card,
-.modal-content,
-.table,
-img.roundedCircle,
-.table th,
-.table td,
-.form-control,
-.dropdown-menu {
-  border-radius: 1.5rem !important;
-}
+
 
 /* Profile picture wrapper */
 #profile-pic-dropdown,
@@ -16,20 +7,22 @@ img.roundedCircle,
 svg.bi-person-circle {
   border-radius: 50% !important;
   box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
-  background: #f8f9fa;
+  background: #303030;
 }
 
 /* Camera icon badge */
 #profile-pic-dropdown span {
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px 0 rgba(255, 255, 255, 0);
 }
 
 /* Table styling */
 .table {
   overflow: hidden;
-  background: #fff;
-  border-radius: 1.1rem !important;
+  background: linear-gradient(to bottom right, #1f1f1f, #4b4b4b); /* Dark gradient */
+  border-radius: 1.0rem !important;
   border: none;
+  color: #3b3b3b; /* Changed text color to white */
+  
 }
 .table th, .table td {
   border: none;
@@ -37,10 +30,12 @@ svg.bi-person-circle {
 }
 
 /* Card shadow and padding for soft look */
-.card {
-  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
-  border: none;
-  padding: 1rem 0.5rem;
+.card {  
+  background: linear-gradient(to bottom right, #333333, #1a1a1a); /* Dark gradient */
+  color: #fff; /* Ensure text is readable on the dark background */
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.596);  
+  border: none;  
+  padding: 1rem 0.5rem;  
 }
 
 /* Modal rounded and shadow */
@@ -71,12 +66,21 @@ svg.bi-person-circle {
 /* Responsive tweaks for mobile */
 @media (max-width: 767px) {
   
-  .btn, .btn-primary, .btn-outline-primary {
-    
-  }
 }
 
 /* Optional: Soft background for the whole dashboard */
-body, .dashboard-container, .container {
-  background: #ffffff !important;
+ .dashboard-container, body{
+  background: #272727 !important;
+}
+.cardeeta {
+  border-radius: 1.5rem !important;
+  background: linear-gradient(to bottom right, #333333, #1a1a1a); /* Dark gradient */  
+}
+/* Add this rule for input fields */
+input[type="text"],
+input[type="email"],
+input[type="tel"] {
+  background: linear-gradient(to bottom right, #131313, #272727); /* Dark gradient */  
+  color: #fff; /* Ensure text is readable on the dark background */
+  border: none;
 }

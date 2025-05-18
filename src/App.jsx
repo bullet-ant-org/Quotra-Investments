@@ -17,6 +17,7 @@ import SupportPage from './layout/Dashboard/SupportPage'; // Example if you have
 import CustomInvestmentEntryPage from './layout/Dashboard/Checkout'; // This is the "Enter Amount" page
 import FinalPaymentPage from './layout/Dashboard/CheckoutPage'; // This is the "Payment Details" page
 import LoansCheckout from './layout/Dashboard/loansCheckout'; // Added this import
+import Withdrawal from './layout/Dashboard/Withdraw'; // Import the Withdrawal component
 
 
 // Import the Admin layout and page components
@@ -28,6 +29,7 @@ import AdminOrders from './Admin/AdminLayouts/Orders';
 import AdminPricing from './Admin/AdminLayouts/PricingAdmin';
 import AdminLoanTypes from './Admin/AdminLayouts/Loanstypes';
 import AdminSettingsPage from './Admin/AdminLayouts/AdminSettings'; // Import the new settings page
+import WithdrawalRequests from "./Admin/AdminLayouts/Withdrawals";
 
 import { Spinner } from 'react-bootstrap'; // For loading state
 
@@ -81,6 +83,7 @@ const App = () => {
           <Route path="support" element={<SupportPage />} />
           <Route path="checkout/:planId" element={<FinalPaymentPage />} /> {/* For specific plan checkout */}
           <Route path="checkout" element={<FinalPaymentPage />} /> {/* For general checkout (from custom amount or loan) */}
+          <Route path="withdrawal" element={<Withdrawal />} /> {/* Added Withdrawal route */}
           {/* LoansCheckout.jsx itself is a page, it then navigates to /dashboard/checkout */}
           <Route path="loans-checkout" element={<LoansCheckout />} />
 
@@ -103,6 +106,7 @@ const App = () => {
           <Route path="pricing-admin" element={<AdminPricing />} />
           <Route path="loan-types-admin" element={<AdminLoanTypes />} />
           <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="withdrawal-requests" element={<WithdrawalRequests />} />
         </Route>
         {/* --- End of Admin Section Parent Route --- */}
 

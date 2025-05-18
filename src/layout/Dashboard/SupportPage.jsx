@@ -41,7 +41,7 @@ const SupportPage = () => {
   return (
     <div id="contact" className="contact-area section-padding">
       <div className="container">
-        <div className="section-title text-center">
+        <div className="section-title text-center text-light">
           <h1>Get in Touch</h1>
           <p>have any complaints? or any issues you need ironed out? contact us now</p>
         </div>
@@ -112,23 +112,23 @@ const SupportPage = () => {
           <div className="col-lg-5">
             <div className="single_address">
               <i className="fa fa-map-marker"></i>
-              <h4>Our Address</h4>
-              <p>3481 Melrose Place, Beverly Hills</p>
+              <h4 className='text-light'>Our Address</h4>
+              <p className='text-light'>37 oxford street, London</p>
             </div>
             <div className="single_address">
               <i className="fa fa-envelope"></i>
-              <h4>Send your message</h4>
-              <p>Info@example.com</p>
+              <h4 className='text-light'>Send your message</h4>
+              <p className='text-light'>Quotrainvestments@gmail.com</p>
             </div>
             <div className="single_address">
               <i className="fa fa-phone"></i>
-              <h4>Call us on</h4>
-              <p>(+1) 517 397 7100</p>
+              <h4 className='text-light'>Call us on</h4>
+              <p className='text-light'>+44 7732 043224</p>
             </div>
             <div className="single_address">
               <i className="fas fa-clock"></i>
-              <h4>Work Time</h4>
-              <p>Mon - Fri: 08.00 - 16.00. <br />Sat: 10.00 - 14.00</p>
+              <h4 className='text-light'>Work Time</h4>
+              <p className='text-light'>Mon - Fri: 08.00 - 16.00. <br />Sat: 10.00 - 14.00</p>
             </div>
           </div>
         </div>

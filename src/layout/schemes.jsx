@@ -32,8 +32,8 @@ const Schemes = () => { // Renamed component to start with uppercase letter
               </span>
             </div>
             <div className="content mt-4">
-              <h5 className="title">Multi-device Support</h5>
-              <p className="text-muted mt-3 mb-0">
+              <h5 className="title text-custom">Multi-device Support</h5>
+              <p className="text-primary mt-3 mb-0">
                 We have tailored our website to accept multiple devices, on Pc, Tablet and mobile
               </p>
               <div className="mt-3">
@@ -67,8 +67,8 @@ const Schemes = () => { // Renamed component to start with uppercase letter
               </span>
             </div>
             <div className="content mt-4">
-              <h5 className="title">100% Return Policy</h5>
-              <p className="text-muted mt-3 mb-0">
+              <h5 className="title text-custom">100% Return Policy</h5>
+              <p className="text-primary mt-3 mb-0">
                 With Quotra Investments, your money is fully secure and any losses will be fully covered by our company
               </p>
               <div className="mt-3">
@@ -102,8 +102,8 @@ const Schemes = () => { // Renamed component to start with uppercase letter
               </span>
             </div>
             <div className="content mt-4">
-              <h5 className="title">High Investments rates</h5>
-              <p className="text-muted mt-3 mb-0">
+              <h5 className="title text-custom">High Investments rates</h5>
+              <p className="text-primary mt-3 mb-0">
                 With us you get the best deals on your investments and the best investments in the industry
               </p>
               <div className="mt-3">
@@ -137,8 +137,8 @@ const Schemes = () => { // Renamed component to start with uppercase letter
               </span>
             </div>
             <div className="content mt-4">
-              <h5 className="title">Modern Workflow</h5>
-              <p className="text-muted mt-3 mb-0">
+              <h5 className="title text-custom">Modern Workflow</h5>
+              <p className="text-primary mt-3 mb-0">
                 With modern Technology and the best hands in the business, all assets are fully covered
               </p>
               <div className="mt-3">
@@ -173,8 +173,8 @@ const Schemes = () => { // Renamed component to start with uppercase letter
               </span>
             </div>
             <div className="content mt-4">
-              <h5 className="title">Unique Features</h5>
-              <p className="text-muted mt-3 mb-0">
+              <h5 className="title text-custom">Unique Features</h5>
+              <p className="text-primary mt-3 mb-0">
                 We offer Loaning Services where you can collect low interest loans to pay back at a later date
               </p>
               <div className="mt-3">
@@ -208,8 +208,8 @@ const Schemes = () => { // Renamed component to start with uppercase letter
               </span>
             </div>
             <div className="content mt-4">
-              <h5 className="title">Support 24/7</h5>
-              <p className="text-muted mt-3 mb-0">
+              <h5 className="title text-custom">Support 24/7</h5>
+              <p className="text-primary mt-3 mb-0">
                 We have a 24/7 support that you can call if there are any issues partaining to your funds and full on lossess coverage
               </p>
               <div className="mt-3">

@@ -12,6 +12,7 @@ const navLinks = [
   { to: 'settings', text: 'Settings', icon: 'fas fa-cog' },
   { to: 'pricing', text: 'Pricing Plans', icon: 'fas fa-tags' },
   { to: 'support', text: 'Support', icon: 'fas fa-headset' },
+  { to: 'withdrawal', text: 'Withdraw Funds', icon: 'fas fa-money-bill-wave' },
 ];
 
 const DesktopSidebar = ({ currentUserEmail, onLogout }) => (
@@ -28,7 +29,7 @@ const DesktopSidebar = ({ currentUserEmail, onLogout }) => (
     }}
   >
     <Link to="." className="navbar-brand mb-4 mt-2 text-center text-dark d-block">
-      Your Brand/Logo
+      Quotra
     </Link>
     <Nav className="flex-column nav-pills">
       {navLinks.map((link) => (

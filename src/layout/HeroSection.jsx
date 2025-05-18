@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 const slides = [
   {
     id: 1,
-    backgroundImage: 'url(/src/assets/darkbggrubbs.jpeg)', // Use correct path relative to public or import
+    backgroundImage: 'url(https://www.nasdaq.com/sites/acquia.prod/files/styles/1370x700/public/gobankingrates/iStock-1417583870-2.jpg?1747554617822262737)', // Use correct path relative to public or import
     title: 'Quotra Investment',
     line1: 'EMBARK ON YOUR TRADING JOURNEY',
     line2: 'WITH A GLOBAL MARKET LEADER',
@@ -16,7 +16,7 @@ const slides = [
   },
   {
     id: 2,
-    backgroundImage: 'url(/src/assets/3bg.webp)', // Replace with your second image path
+    backgroundImage: 'url(https://wallpapers.com/images/high/beautiful-representation-of-investment-h9o0tdbw0vfp181s.webp)', // Replace with your second image path
     title: 'Diverse Portfolio Options',
     line1: 'EXPLORE STOCKS, FOREX, AND FUTURES',
     line2: 'TAILORED TO YOUR INVESTMENT STYLE',
@@ -28,7 +28,7 @@ const slides = [
   
   {
     id: 3,
-    backgroundImage: 'url(/src/assets/2bg.jpg)', // Replace with your third image path
+    backgroundImage: 'url(https://img.freepik.com/free-photo/panoramic-view-dubai-city-illuminated-neon-spectrum_23-2151305340.jpg?uid=R147793746&ga=GA1.1.411146356.1744773989&semt=ais_hybrid&w=740)', // Replace with your third image path
     title: 'Secure Your Future',
     line1: 'BUILD WEALTH WITH EXPERT GUIDANCE',
     line2: 'JOIN MILLIONS OF SATISFIED INVESTORS',

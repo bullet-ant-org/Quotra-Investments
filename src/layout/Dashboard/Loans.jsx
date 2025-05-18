@@ -51,20 +51,20 @@ const Loans = () => {
 
   return (
     <div className="container">
-      <h2 className="text-center my-4">Available Loan Options</h2>
+      <h2 className="text-center my-4 text-light">Available Loan Options</h2>
       <div className="mt-3">
         {loans.map((loan) => (
           <div
             key={loan.id} // Use MongoDB's `id`
-            className="d-style btn-brc-tp bgc-white border-light-subtle w-100 my-3 py-3 shadow-sm loan-card-hover p-3"
+            className="d-style btn-brc-tp bgc-white border-light-subtle w-100 my-3 py-3 shadow-sm loan-card-hover p-3 cardeeta"
           >
             <div className="row align-items-center">
               {/* Loan Name and Details */}
               <div className="col-12 col-md-4">
-                <h4 className="pt-3 text-170 text-600 text-primary letter-spacing">
+                <h4 className="pt-3 text-170 text-light text-primary letter-spacing">
                   {loan.name}
                 </h4>
-                <div className="text-secondary-d1 text-100 mt-2">
+                <div className="text-light text-100 mt-2">
                   <div>
                     <strong>Rate:</strong> {loan.interestRate ?? 'N/A'}
                   </div>

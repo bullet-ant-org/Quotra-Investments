@@ -9,6 +9,7 @@ const initialLoanState = {
     term: '',
     amountRange: '',
     descriptionPoints: [{ text: '', included: true }],
+    applicationFee: '', // Added applicationFee
     buttonText: 'Apply Now',
 };
 
@@ -94,6 +95,7 @@ const Loanstypes = () => {
                 body: JSON.stringify({
                     ...loanData,
                     buttonLink: '/dashboard/loans-checkout', // Hardcode the buttonLink
+                    applicationFee: parseFloat(loanData.applicationFee) || 0, // Ensure it's a number
                 }), // JSON server will auto-assign an 'id'
             });
 
@@ -200,6 +202,19 @@ const Loanstypes = () => {
                                 />
                             </Form.Group>
                         </Row>
+                        <Row className="mb-3">
+                            <Form.Group as={Col} md="6" controlId="applicationFee">
+                                <Form.Label>Application Fee (USD)</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    name="applicationFee"
+                                    value={loanData.applicationFee}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., 50.00"
+                                    step="0.01"
+                                />
+                            </Form.Group>
+                        </Row>
 
                         <Card.Subtitle className="mb-2 mt-4 text-muted">Description Points</Card.Subtitle>
                         {loanData.descriptionPoints.map((point, index) => (
@@ -287,7 +302,8 @@ const Loanstypes = () => {
                                         <small className="text-muted">
                                             Rate: {loan.interestRate || 'N/A'} |
                                             Term: {loan.term || 'N/A'} |
-                                            Amount: {loan.amountRange || 'N/A'}
+                                            Amount: {loan.amountRange || 'N/A'} |
+                                            Fee: ${typeof loan.applicationFee === 'number' ? loan.applicationFee.toFixed(2) : 'N/A'}
                                         </small>
                                         <ul className="list-unstyled list-inline mt-1 mb-0">
                                             {(loan.descriptionPoints || []).map((p, idx) => (

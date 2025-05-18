@@ -1,8 +1,7 @@
 // src/layout/Dashboard/Main.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert, ListGroup, Image } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../utils/api';
 import { format, parseISO, addDays, differenceInMilliseconds, isBefore } from 'date-fns'; // For formatting dates and calculations
 import { PersonCircle } from 'react-bootstrap-icons';
@@ -167,7 +166,96 @@ const Dashboard = ({ userId, onUserDataUpdate }) => {
 
       {userData && (
         <>
-          
+          {/* Statistics Cards Section */}
+          <Row className="mb-4">
+            {/* Card 1: Current Accrued Profit */}
+            <Col xl={6} lg={6} md={6} sm={12} className="mb-3">
+              <Card style={{ backgroundColor: '#D9534F', color: 'white' }}> {/* l-bg-cherry */}
+                <Card.Body className="p-4">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h5 className="card-title mb-0">Accrued Profit</h5>
+                      <h2 className="d-flex align-items-center mb-0 mt-2">
+                        {formatCurrency(dynamicallyCalculatedProfit)}
+                      </h2>
+                    </div>
+                    <div className="card-icon card-icon-large text-white" style={{ fontSize: '3rem', opacity: 0.8 }}>
+                      <i className="fas fa-chart-line"></i>
+                    </div>
+                  </div>
+                  {/* <div className="progress mt-3" style={{ height: '8px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '60%', backgroundColor: '#17A2B8' }} aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div> */}
+                </Card.Body>
+              </Card>
+            </Col>
+
+            {/* Card 2: Trade Duration / Time Remaining */}
+            <Col xl={6} lg={6} md={6} sm={12} className="mb-3">
+              <Card style={{ backgroundColor: '#30475E', color: 'white' }}> {/* l-bg-blue-dark */}
+                <Card.Body className="p-4">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h5 className="card-title mb-0">{timeLeftFormatted && timeLeftFormatted !== "Completed" ? "Time Remaining" : "Trade Duration"}</h5>
+                      <h2 className="d-flex align-items-center mb-0 mt-2">
+                        {timeLeftFormatted && timeLeftFormatted !== "Completed" ? timeLeftFormatted : `${userData.tradeDurationDays || 0} days`}
+                      </h2>
+                    </div>
+                    <div className="card-icon card-icon-large text-white" style={{ fontSize: '3rem', opacity: 0.8 }}>
+                      <i className="fas fa-hourglass-half"></i>
+                    </div>
+                  </div>
+                  {/* <div className="progress mt-3" style={{ height: '8px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '35%', backgroundColor: '#28A745' }} aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div> */}
+                </Card.Body>
+              </Card>
+            </Col>
+
+            {/* Card 3: Profit Potential */}
+            <Col xl={6} lg={6} md={6} sm={12} className="mb-3">
+              <Card style={{ backgroundColor: '#1E7E34', color: 'white' }}> {/* l-bg-green-dark */}
+                <Card.Body className="p-4">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h5 className="card-title mb-0">Profit Potential</h5>
+                      <h2 className="d-flex align-items-center mb-0 mt-2">
+                        {userData.profitPotential || 0}%
+                      </h2>
+                    </div>
+                    <div className="card-icon card-icon-large text-white" style={{ fontSize: '3rem', opacity: 0.8 }}>
+                      <i className="fas fa-percentage"></i>
+                    </div>
+                  </div>
+                  {/* <div className="progress mt-3" style={{ height: '8px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: `${userData.profitPotential || 0}%`, backgroundColor: '#FD7E14' }} aria-valuenow={userData.profitPotential || 0} aria-valuemin="0" aria-valuemax="100"></div>
+                  </div> */}
+                </Card.Body>
+              </Card>
+            </Col>
+
+            {/* Card 4: Current Investment Value */}
+            <Col xl={6} lg={6} md={6} sm={12} className="mb-3">
+              <Card style={{ backgroundColor: '#D97706', color: 'white' }}> {/* l-bg-orange-dark */}
+                <Card.Body className="p-4">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h5 className="card-title mb-0">Current Value</h5>
+                      <h2 className="d-flex align-items-center mb-0 mt-2">
+                        {formatCurrency(currentTotalInvestmentValue)}
+                      </h2>
+                    </div>
+                    <div className="card-icon card-icon-large text-white" style={{ fontSize: '3rem', opacity: 0.8 }}>
+                      <i className="fas fa-wallet"></i>
+                    </div>
+                  </div>
+                  {/* <div className="progress mt-3" style={{ height: '8px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '75%', backgroundColor: '#17A2B8' }} aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div> */}
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
 
           {userData.investmentStatus === 'completed' || userData.investmentStatus === 'active' ? (
             <Card className="mb-4">

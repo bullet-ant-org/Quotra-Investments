@@ -240,7 +240,7 @@ const Profile = () => {
               ) : (
                 <PersonCircle
                   size={140}
-                  className="text-secondary profile-avatar"
+                  className="text-light profile-avatar"
                 />
               )}
               <span className="profile-avatar-badge">
@@ -255,19 +255,19 @@ const Profile = () => {
         </Col>
         <Col xs={12} md={8}>
           <Row>
-            <Col xs={6} className="mb-3 mb-md-0">
-              <Card className="shadow-sm text-center profile-card-rounded">
+            <Col xs={6} className="mb-3 mb-md-0" >
+              <Card className="shadow-sm text-center cardeeta">
                 <Card.Body>
                   <Card.Title className="mb-1">Total Balance</Card.Title>
-                  <h3 className="text-primary">{formatCurrency(profileData.totalBalance)}</h3>
+                  <h3 className="text-primary"><i className="fas fa-coins me-2"></i>{formatCurrency(profileData.totalBalance)}</h3>
                 </Card.Body>
               </Card>
-            </Col>
+            </Col>            
             <Col xs={6}>
-              <Card className="shadow-sm text-center profile-card-rounded">
+              <Card className="shadow-sm text-center text-light cardeeta">
                 <Card.Body>
                   <Card.Title className="mb-1">Total Income</Card.Title>
-                  <h3 className="text-success">{formatCurrency(profileData.totalIncome)}</h3>
+                  <h3 className="text-success"><i className="fas fa-money-bill-wave me-2"></i>{formatCurrency(profileData.totalIncome)}</h3>
                 </Card.Body>
               </Card>
             </Col>
@@ -280,27 +280,27 @@ const Profile = () => {
           <Card className="shadow-sm profile-card-rounded">
             <Card.Body>
               <h5 className="mb-3">User Information</h5>
-              <Table responsive bordered hover className="mb-0 profile-card-rounded">
+              <Table responsive bordered hover className="mb-0 profile-card-rounded ">
                 <tbody>
                   <tr>
-                    <th>Username</th>
-                    <td>{profileData.username}</td>
+                    <th className='text-light'>Username</th>
+                    <td className='text-light'>{profileData.username}</td>
                   </tr>
                   <tr>
-                    <th>Email</th>
-                    <td>{profileData.email}</td>
+                    <th className='text-light'>Email</th>
+                    <td className='text-light'>{profileData.email}</td>
                   </tr>
                   <tr>
-                    <th>Phone</th>
-                    <td>{profileData.phone || 'N/A'}</td>
+                    <th className='text-light'>Phone</th>
+                    <td className='text-light'>{profileData.phone || 'N/A'}</td>
                   </tr>
                   <tr>
-                    <th>Total Balance</th>
-                    <td>{formatCurrency(profileData.totalBalance)}</td>
+                    <th className='text-light'>Total Balance</th>
+                    <td className='text-light'>{formatCurrency(profileData.totalBalance)}</td>
                   </tr>
                   <tr>
-                    <th>Total Income</th>
-                    <td>{formatCurrency(profileData.totalIncome)}</td>
+                    <th className='text-light'>Total Income</th>
+                    <td className='text-light'>{formatCurrency(profileData.totalIncome)}</td>
                   </tr>
                 </tbody>
               </Table>

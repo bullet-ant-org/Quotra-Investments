@@ -67,6 +67,7 @@ const DashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
     { to: 'settings', text: 'Settings' },
     { to: 'pricing', text: 'Pricing Plans' },
     { to: 'support', text: 'Support' },
+    { to: 'withdrawal', text: 'Withdraw Funds', icon: 'fas fa-money-bill-wave' },
   ];
 
   const renderNavLinks = (onClickHandler) =>

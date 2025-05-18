@@ -216,9 +216,12 @@ const CheckoutPage = () => {
                   <p className="text-center">
                     Please send the exact amount to the following wallet address:
                   </p>
-                  <p className="text-center lead fw-bold text-break bg-white p-3 rounded border">
+                  <p className="text-center lead fw-bold text-break bg-white p-3 rounded border text-dark">
                     {adminWalletAddress || 'Loading wallet address...'}
                   </p>
+                  <Alert variant="warning" className="mt-2 text-center small">
+                    <i className="fas fa-exclamation-triangle me-1"></i><strong>Important:</strong> This is a USDT (TRC20) wallet. Any transfer to another blockchain cannot be processed.
+                  </Alert>
                   <Alert variant="info" className="mt-3 text-center">
                     After making the payment, click the "Confirm Payment" button below.
                     Your transaction will be verified by an admin.

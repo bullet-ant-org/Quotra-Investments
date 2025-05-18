@@ -11,6 +11,7 @@ const Settings = () => {
     email: '',
     phone: '',
     profileImageUrl: '',
+    walletAddress: '',
   });
   const [passwordData, setPasswordData] = useState({
     newPassword: '',
@@ -67,6 +68,7 @@ const Settings = () => {
           email: data.email || '',
           phone: data.phone || '',
           profileImageUrl: data.profileImageUrl || data.profilePictureUrl || '',
+          walletAddress: data.walletAddress || '',
         });
       } catch (err) {
         console.error('Error fetching user data for settings:', err);
@@ -115,6 +117,7 @@ const Settings = () => {
       const updatePayload = {
         username: userData.username,
         phone: userData.phone,
+        walletAddress: userData.walletAddress,
         // profileImageUrl is handled by handleFileSelected
       };
       if (passwordData.newPassword) {
@@ -154,6 +157,7 @@ const Settings = () => {
             ...currentLocalUser,
             username: userData.username, // from form
             phone: userData.phone,       // from form
+            walletAddress: userData.walletAddress,
             // profileImageUrl is updated separately in handleFileSelected
             // password should not be stored in localStorage directly
         };
@@ -337,6 +341,20 @@ const Settings = () => {
                                       name="phone"
                                       placeholder="+1234567890"
                                       value={userData.phone}
+                                      onChange={handleInputChange}
+                                    />
+                                  </Form.Group>
+                                </Col>
+                              </Row>
+                              <Row>
+                                <Col>
+                                  <Form.Group className="mb-3">
+                                    <Form.Label>Wallet Address</Form.Label>
+                                    <Form.Control
+                                      type="text"
+                                      name="walletAddress"
+                                      placeholder="Enter your wallet address"
+                                      value={userData.walletAddress}
                                       onChange={handleInputChange}
                                     />
                                   </Form.Group>

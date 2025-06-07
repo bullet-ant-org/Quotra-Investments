@@ -82,7 +82,7 @@ const Testimony = () => {
                     />
                     <h5 className="reviewer-name mb-0">{review.name}</h5>
                   </div>
-                  <p className="review-content card-text text-light ">
+                  <p className="review-content card-text text-dark ">
                     "{review.review}"
                   </p>
                   <div className="review-rating mt-auto pt-2"> {/* Push rating to bottom */}

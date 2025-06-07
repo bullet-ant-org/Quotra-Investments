@@ -11,7 +11,7 @@ const slides = [
     line2: 'WITH A GLOBAL MARKET LEADER',
     buttons: [
       { text: 'Get Started', link: '/login', variant: 'btnpricolor' }, // Changed link to /login
-      { text: 'Pricing', link: '/pricing', variant: 'btn-secondary' }, // Changed link to /pricing
+      { text: 'Pricing', link: '/services', variant: 'btn-secondary' }, // Changed link to /pricing
     ],
   },
   {
@@ -20,8 +20,7 @@ const slides = [
     title: 'Diverse Portfolio Options',
     line1: 'EXPLORE STOCKS, FOREX, AND FUTURES',
     line2: 'TAILORED TO YOUR INVESTMENT STYLE',
-    buttons: [
-      { text: 'Explore Markets', link: '/markets', variant: 'btn-success' }, // Example button
+    buttons: [ // Example button
       { text: 'Learn More', link: '/about', variant: 'btn-outline-light' }, // Example button
     ],
   },
@@ -33,8 +32,8 @@ const slides = [
     line1: 'BUILD WEALTH WITH EXPERT GUIDANCE',
     line2: 'JOIN MILLIONS OF SATISFIED INVESTORS',
     buttons: [
-      { text: 'Open Account', link: '/signup', variant: 'btn-warning' }, // Example button
-      { text: 'Contact Us', link: '/contact', variant: 'btn-info' }, // Example button
+      { text: 'Open Account', link: '/login', variant: 'btn-warning' }, // Example button
+      { text: 'Services', link: '/services', variant: 'btn-info' }, // Example button
     ],
   },
   // Add more slides as needed

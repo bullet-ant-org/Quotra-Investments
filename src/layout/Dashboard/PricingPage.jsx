@@ -50,7 +50,7 @@ const PricingPage = () => {
 
   return (
     <div className="container">
-      <h2 className="text-center my-4 text-light">Our Pricing Plans</h2>
+      <h2 className="text-center my-4 text-dark">Our Pricing Plans</h2>
       <div className="mt-3">
         {plans.map((plan) => (
           <div
@@ -73,15 +73,15 @@ const PricingPage = () => {
                 <h4 className="pt-3 text-170 text-600 text-primary letter-spacing">
                   {plan.name}
                 </h4>
-                <div className="text-secondary-d1 text-120 mb-2 text-light">
+                <div className="text-dark-d1 text-120 mb-2 text-dark">
                   <span className="ml-n15 align-text-bottom text-light">$</span>
-                  <span className="text-light">{plan.priceRange || 'N/A'}</span> {plan.period}
+                  <span className="text-secondary">{plan.priceRange || 'N/A'}</span>USD
                 </div>
-                <div className="text-light small mb-1">
-                  <strong>Trade Time:</strong> {plan.tradeTime || 'Not specified'}
+                <div className="text-dark small mb-1">
+                  <strong>Trade Time:</strong> {plan.tradeTime || 'Not specified'} {plan.period}
                 </div>
-                <div className="text-light small">
-                  <strong>Profit Potential:</strong> {plan.profitPotential || 'Variable'}
+                <div className="text-dark small">
+                  <strong>Profit Potential:</strong> {plan.profitPotential || 'Variable'} %
                 </div>
               </div>
 

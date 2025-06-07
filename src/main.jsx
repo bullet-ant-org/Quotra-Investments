@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css'
 import App from './App.jsx'
+import emailjs from '@emailjs/browser'; // Import emailjs
 import CustomSpinner from './components/CustomSpinner';
 import ReCAPTCHA from "react-google-recaptcha"; // Import reCAPTCHA
 
@@ -10,6 +11,9 @@ import ReCAPTCHA from "react-google-recaptcha"; // Import reCAPTCHA
 // IMPORTANT: Replace with your actual Site Key if this is not correct
 const RECAPTCHA_SITE_KEY = "6Lc9MT4rAAAAAEqxA9jgcy5bRmzx7X8oZEG25ND0";
 
+// Import EmailJS Public Key
+import { EMAILJS_PUBLIC_KEY } from './utils/api';
+emailjs.init(EMAILJS_PUBLIC_KEY); // Initialize EmailJS once globally
 // Component to handle initial loading and CAPTCHA check
 const RootWithLoader = () => {
   const [showLoader, setShowLoader] = useState(true);

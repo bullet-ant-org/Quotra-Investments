@@ -21,28 +21,6 @@ const AdminDashboardLayout = () => {
       />
 
       {/* Main Content Area */}
-      {/*
-        The 'content-wrapper' class should have CSS to adjust its margin-left
-        based on whether the sidebar is open or closed.
-        Example CSS in your main CSS file (e.g., index.css or App.css):
-
-        .content-wrapper {
-          padding-top: 70px; // Adjust based on your navbar height
-          transition: margin-left 0.3s ease-in-out;
-          margin-left: 0; // Default for mobile or when sidebar is closed
-        }
-
-        .content-wrapper.sidebar-open {
-          margin-left: 250px; // Adjust to your sidebar's width
-        }
-
-        // On smaller screens, the sidebar is usually an offcanvas, so no margin needed
-        @media (max-width: 991.98px) { // lg breakpoint in Bootstrap
-          .content-wrapper.sidebar-open {
-            margin-left: 0;
-          }
-        }
-      */}
       <main className={`content-wrapper ${isDesktopSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <Outlet />
       </main>

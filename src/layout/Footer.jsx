@@ -3,6 +3,7 @@ import React from 'react';
 // Option A: Import the logo (adjust path if needed)
 import logo from '../assets/logo-no-background1.png';
 import cert from '../assets/Cert.jpg'
+import { Link } from 'react-router-dom'; // Import Link
 import cert2 from '../assets/1000002915.png'
 
 // Make sure you have Font Awesome included in your project for the icons!
@@ -30,9 +31,8 @@ const Footer = () => {
                 </div>
               </div>
               <div className="col-lg-5">
-                <div className="button_box">
-                  {/* Kept as 'a' tag as per original HTML */}
-                  <a href="#" className="btn btn-warning text-light">Apply For a Loan</a>
+                <div className="button_box"> {/* Apply For a Loan */}
+                  <Link to="/login" className="btn btn-warning text-light">Apply For a Loan</Link>
                 </div>
               </div>
             </div>
@@ -62,10 +62,10 @@ const Footer = () => {
                   <p><b>QUOTRA INVESTMENTS</b> The best choice when it comes to letting your money work for you and making more money to take care of other issues. <br />
                  <br /> Have Quotra do the hard work for you and just relax while your money keeps coming</p>
                   <ul className="social">
-                    {/* Kept as 'a' tags */}
-                    <li><a href="#"><i className="fab fa-facebook-f"></i></a></li>
-                    <li><a href="#"><i className="fab fa-twitter"></i></a></li>
-                    <li><a href="#"><i className="fab fa-instagram"></i></a></li>
+                    {/* Social media links - converted to Link, but consider if these should be actual external <a> tags */}
+                    <li><Link to="#"><i className="fab fa-facebook-f"></i></Link></li>
+                    <li><Link to="#"><i className="fab fa-twitter"></i></Link></li>
+                    <li><Link to="#"><i className="fab fa-instagram"></i></Link></li>
                   </ul>
                 </div>
               </div>
@@ -77,11 +77,10 @@ const Footer = () => {
                     <h4>Links</h4>
                   </div>
                   <ul>
-                    {/* Kept as 'a' tags */}
-                    <li><a href="#">Support</a></li>
-                    <li><a href="#">Pricing</a></li>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Loans</a></li>
+                    <li><Link to="/about">About us</Link></li> {/* Assuming you have a /support route */}
+                    <li><Link to="/services">Services</Link></li> {/* Corrected for same-page anchor with HashRouter */}
+                    <li><Link to="/">Home</Link></li> {/* Assuming Home links to the root */}
+                    <li><Link to="/login">Loans</Link></li> {/* Assuming Loans also goes to login or a specific loans page */}
                   </ul>
                 </div>
               </div>
@@ -98,7 +97,7 @@ const Footer = () => {
                         <i className="fas fa-phone-alt"></i>
                       </div>
                       <div className="info">
-                        {/* Kept as 'a' tags */}
+                        {/* Kept as 'a' tags for tel: links */}
                         <p><a href="tel:+44 7732 043224">+44 7732 043224</a></p>
                         <p><a href="tel:+44 7732 043224">+44 7732 043224</a></p>
                       </div>
@@ -108,7 +107,7 @@ const Footer = () => {
                         <i className="fas fa-envelope"></i>
                       </div>
                       <div className="info">
-                        {/* Kept as 'a' tags */}
+                        {/* Kept as 'a' tags for mailto: links */}
                         <p><a href="mailto:quotrainvestments@gmail.com">quotrainvestments@gmail.com</a></p>
                         <p><a href="mailto:services@deneb.com">quotrainvestments@gmail.com</a></p>
                       </div>

@@ -1,67 +1,71 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // 1. Import Link
-import PlanCardMini from './PlanCardMini';
-import PlanCardMain from './PlanCardMain';
+import React from 'react';
+// Removed Link import as it's not used in the new structure
+// Removed PlanCardMini and PlanCardMain imports
 
 const PlanSection = () => {
-  const [plans] = useState([
-    {
-      head: '',
-      typeo: 'Basic',
-      rate: 30,
-      amount1: 50,
-      amount2: 500,
-      Desc: 'The best plan for someone on a budget but plans to maximise profits',
-      id: 1,
-    },
-    {
-      head: 'Popular',
-      typeo: 'Platinum',
-      rate: 350,
-      amount1: 5000,
-      amount2: 50000,
-      Desc: 'The best plan for anyone with plans of making more than peers with high interest rates and a good runtime',
-      id: 2,
-    },
-    {
-      head: '',
-      typeo: 'Advanced',
-      rate: 45,
-      amount1: 200,
-      amount2: 2500,
-      Desc: 'The best plan for someone on a budget but plans to maximise profits',
-      id: 3,
-    },
-  ]);
+  // Removed the 'plans' state as the new structure is static for now.
+  // If these plans need to be dynamic, you'll fetch them similar to PricingPage.jsx
 
   return (
-    <section id="pricing">
-      <div className="container-lg py-5">
-        <div className="text-center">
-          <h2>Popular Plans</h2>
-          <p className="lead">Most popular pricing plans filtered for you</p>
+    <section className="pricing-section"> {/* Use the class name you provided */}
+      <div className="container">
+        <div className="row justify-content-md-center">
+          <div className="col-xl-5 col-lg-6 col-md-8">
+            <div className="section-title text-center title-ex1">
+              <h2>Some Pricing Plans</h2>
+              <p>Get in on the action with some of the best Pricing Plans in the world</p>
+            </div>
+          </div>
         </div>
-        <div className="row my-5 align-items-center justify-content-center g-3">
-          {/* Map over the plans array */}
-          {plans.map((plan, index) =>
-            index === 1 ? (
-              // Render PlanCardMain for the middle card
-              <PlanCardMain key={plan.id} plans={plan} />
-            ) : (
-              // Render PlanCardMini for other cards
-              <PlanCardMini key={plan.id} plans={plan} />
-            )
-          )}
-          {/* 2. Wrap the button/div with Link and set the 'to' prop */}
-          <div className="text-center my-3"> {/* Added text-center for better alignment */}
-            <Link to="/pricing" className="other-plans btn btn-primary"> {/* Use Link here */}
-              View all Plans
-            </Link>
+        {/* Pricing Table starts */}
+        <div className="row">
+          <div className="col-md-4">
+            <div className="price-card">
+              <h2>Startup</h2>
+              <p>Reccomended for new users</p>
+              <p className="price"><span>50</span>/ 2 Days</p>
+              <ul className="pricing-offers">
+                <li>20% Profits</li>
+                <li>100% Refund Policy</li>
+                <li>Trade Coverage</li>
+                <li>Little trade time</li>
+                <li>0 Hidden fees</li>
+              </ul>
+              {/* If this should navigate within your React app, consider using <Link> from react-router-dom */}
+              {/* For now, keeping it as an <a> tag as per your HTML structure */}
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="price-card featured"> {/* Added 'featured' class */}
+              <h2>Enterpreneur</h2>
+              <p>Most popular choice</p>
+              <p className="price"><span>2,500</span>/ 14 Days</p>
+              <ul className="pricing-offers">
+                <li>65% Profits</li>
+                <li>100% Refund Policy</li>
+                <li>Trade Coverage</li>
+                <li>100% more if you get two at once</li>
+                <li>0 hidden fees</li>
+              </ul>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="price-card">
+              <h2>Business</h2>
+              <p>For Startup Business or Establishments</p>
+              <p className="price"><span>10,000</span>/ 30 Days</p>
+              <ul className="pricing-offers">
+                <li>200% Profits</li>
+                <li>100% Refund Policy</li>
+                <li>Trade Coverage</li>
+                <li>Business insurance From Us</li>
+                <li>24/7 Financial Advisors</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     </section>
   );
 };
-
 export default PlanSection;

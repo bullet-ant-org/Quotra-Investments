@@ -1,31 +1,120 @@
 // src/layout/HeadlineSlider.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { GNEWS_API_KEY } from '../utils/api'; // Import the API key
 
-
-// Sample data for headlines and background images
-// In a real app, you'd fetch this data
-const headlinesData = [
-  { id: 1, text: 'Breaking News: Market Hits Record Highs', image: 'https://static.standard.co.uk/s3fs-public/thumbnails/image/2018/02/02/12/bitcoin0202ac.jpg?crop=8:5,smart&quality=75&auto=webp&width=1000' },
-  { id: 2, text: 'Tech Giant Unveils New Gadget', image: 'https://static.standard.co.uk/2024/07/02/8/03/ArcticFit-LED-Running-Vest.jpg?crop=8:5,smart&quality=75&auto=webp&width=1000' },
-  { id: 3, text: 'Global Summit Addresses Climate Change', image: 'https://static.standard.co.uk/2025/02/09/19/c05fd182b0f5829d9d8082599f0e49b2Y29udGVudHNlYXJjaGFwaSwxNzM5MjEzNjU1-2.78920527.jpg?crop=8:5,smart&quality=75&auto=webp&width=1000' },
-  { id: 4, text: 'Sports Update: Local Team Wins Championship', image: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/sport-news-design-template-f27c1fabf4244e6adb535e0d9e8382ac_screen.jpg?ts=1610638130' },
-  { id: 5, text: 'Arts & Culture: New Exhibition Opens Downtown', image: 'https://www.roanokeva.gov/Areas/CivicSend/Assets/Uploads/3036/sf801ccd9805b40548d243815a35a7d1a_small_optimized.jpg' },
-  { id: 6, text: 'Weather Alert: Storm Approaching Region', image: 'https://www.shutterstock.com/shutterstock/videos/1084338925/thumb/5.jpg?ip=x480' },
-  { id: 7, text: 'Business Buzz: Startup Secures Major Funding', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp80mRA8xxHcK9h0fCIzHwnmw-5VSS05a0ug&s' },
-  // Add more headlines up to 15 or as needed
-  { id: 8, text: 'Headline 8', image: 'https://www.shutterstock.com/image-vector/crypto-currency-news-golden-bitcoin-260nw-773520289.jpg' },
-  { id: 9, text: 'Headline 9', image: 'https://img.freepik.com/free-psd/cryptocurrency-concept-template_23-2151598729.jpg' },
-  { id: 10, text: 'Headline 10', image: 'https://www.shutterstock.com/image-illustration/smartphone-bitcoin-symbol-onscreen-among-600nw-703957714.jpg' },
-  { id: 11, text: 'Headline 11', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTF4joYMOU-sK_WMSZ1yRuQfmtWlIgzE-qz7w&s' },
-  { id: 12, text: 'Headline 12', image: 'https://ffnews.com/wp-content/uploads/2023/06/Macro-Hedge-Fund-LHG-Capital-Closes-First-Single-Investor-Fund-at-US150-Million.jpg' },
-  { id: 13, text: 'Headline 13', image: 'https://assets.bwbx.io/images/users/iqjWHBFdfxIU/ipwLo1i3qIN4/v3/-1x-1.jpg' },
-  { id: 14, text: 'Headline 14', image: 'https://i.ytimg.com/vi/EcnlIlBNiRQ/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLA6cGgtJGo1JsALh6jmMDrDe90xCw' },
-  { id: 15, text: 'Headline 15', image: 'https://images.cars.com/cldstatic/wp-content/uploads/Lede_Image_What_Are_the_Best_2025_Hybrids_for_the_Money.jpg' },
-];
+// Fallback image if an article doesn't have one
+const FALLBACK_IMAGE_URL = 'https://via.placeholder.com/400x250/0d6efd/FFFFFF?text=News+Headline';
+const MAX_HEADLINES_TO_FETCH = 70;
+const CACHE_DURATION_HOURS = 2;
+const CACHE_KEY = 'gnewsCache';
 
 const secSection2 = () => {
+  const [headlines, setHeadlines] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAndCacheHeadlines = async () => {
+      setLoading(true);
+      setError(null);
+
+      // Check cache first
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      if (cachedData) {
+        const { timestamp, articles } = JSON.parse(cachedData);
+        const ageInHours = (Date.now() - timestamp) / (1000 * 60 * 60);
+        if (ageInHours < CACHE_DURATION_HOURS) {
+          console.log("Using cached news data.");
+          setHeadlines(articles);
+          setLoading(false);
+          return;
+        } else {
+          console.log("Cache expired, fetching new data.");
+        }
+      }
+
+      try {
+        // Fetch top headlines. You can customize with `country`, `category`, `q` (keywords) etc.
+        // GNews API: lang=en for English, max=${MAX_HEADLINES_TO_FETCH}
+        const response = await fetch(
+          `https://gnews.io/api/v4/top-headlines?token=${GNEWS_API_KEY}&lang=en&max=${MAX_HEADLINES_TO_FETCH}&topic=business`
+          // You can change topic=business to other topics like 'world', 'nation', 'technology', 'entertainment', 'sports', 'science', 'health'
+          // Or use `q=keyword` for specific searches.
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.errors ? errorData.errors.join(', ') : `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        const formattedArticles = data.articles.map(article => ({
+          id: article.url, // GNews provides a URL which is good for a unique ID
+          text: article.title,
+          image: article.image || FALLBACK_IMAGE_URL, // Use GNews image or fallback
+          link: article.url,
+        })).filter(article => article.image !== FALLBACK_IMAGE_URL || article.image); // Prefer articles with actual images
+
+        setHeadlines(formattedArticles);
+
+        // Cache the new data
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          articles: formattedArticles,
+        }));
+
+      } catch (e) {
+        console.error("Failed to fetch headlines:", e);
+        setError(e.message || "Failed to load headlines. Please try again later.");
+        // Optionally, if fetching fails, try to load stale cache if available
+        if (cachedData) {
+            const { articles } = JSON.parse(cachedData);
+            setHeadlines(articles);
+            console.warn("API fetch failed, using stale cache.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAndCacheHeadlines();
+  }, []);
+
   // Duplicate the data for a seamless loop effect
-  const doubledHeadlines = [...headlinesData, ...headlinesData];
+  const doubledHeadlines = headlines.length > 0 ? [...headlines, ...headlines] : [];
+
+  if (loading && headlines.length === 0) { // Show loading only on initial load without cache
+    return (
+      <section className="headline-section py-4">
+        <div className="container-fluid text-center">
+          <h4 className="mb-4">Loading Latest Headlines...</h4>
+          {/* You can add a spinner here */}
+        </div>
+      </section>
+    );
+  }
+
+  if (error && headlines.length === 0) { // Show error only if there's no data (not even stale cache)
+    return (
+      <section className="headline-section py-4">
+        <div className="container-fluid text-center text-danger">
+          <h4 className="mb-4">Error Loading Headlines</h4>
+          <p>{error}</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (headlines.length === 0 && !loading) {
+    return (
+      <section className="headline-section py-4">
+        <div className="container-fluid text-center">
+          <h4 className="mb-4">No Headlines Available At The Moment.</h4>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="headline-section py-4"> {/* Section wrapper */}
@@ -35,12 +124,14 @@ const secSection2 = () => {
           <div className="headline-slider-track pt-3"> {/* This div moves */}
             {doubledHeadlines.map((headline, index) => (
               <div
-                key={`${headline.id}-${index}`} // Unique key for duplicated items
+                key={`${headline.id}-${index}`} // Use the unique ID from the article
                 className="headline-item"
                 style={{ backgroundImage: `url(${headline.image})` }}
               >
                 <div className="headline-text">
-                  {headline.text}
+                  <a href={headline.link} target="_blank" rel="noopener noreferrer" style={{color: 'white', textDecoration: 'none'}}>
+                    {headline.text}
+                  </a>
                 </div>
               </div>
             ))}

@@ -1,0 +1,34 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "username": "AdminUser",
+      "email": "admin@example.com",
+      "profilePictureUrl": "https://example.com/images/avatar_admin.png",
+      "role": "admin",
+      "password": "admin"
+    }
+  ],
+  "assets": [],
+  "assetOrders": [],
+  "loanTypes": [],
+  "adminDashboardSummary": {},
+  "adminSettings": [
+    {
+      "id": "globalAdminSettings",
+      "checkoutWalletAddress": ""
+    }
+  ],
+  "transactions": [],
+  "depositRequests": [
+    
+  ],
+  "withdrawalRequests": [
+    
+  ],
+  "activities": [
+    
+  ],
+  "bonuses": [],
+  "loanOrders": []
+}

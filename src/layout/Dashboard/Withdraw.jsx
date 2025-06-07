@@ -1,53 +1,72 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert, InputGroup, Modal } from 'react-bootstrap';
-import { API_BASE_URL } from '../../utils/api'; // Import the API base URL
+import { Link } from 'react-router-dom';
+import { Container, Row, Col, Card, Form, Button, Alert, InputGroup, Modal, Spinner } from 'react-bootstrap';
+import { API_BASE_URL } from '../../utils/api';
+
+const gradientCardStyle = {
+  background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)',
+  border: 'none',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
+  borderRadius: '2rem',
+  padding: '2.5rem 2rem',
+};
+
+const balanceBoxStyle = {
+  background: 'linear-gradient(90deg, #00c6fb 0%, #005bea 100%)',
+  color: '#fff',
+  borderRadius: '1rem',
+  boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
+  padding: '1.5rem 1rem',
+  marginBottom: '2rem',
+};
 
 const Withdrawal = () => {
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [currentBalance, setCurrentBalance] = useState(0);
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
-  const [walletAddress, setWalletAddress] = useState('');
-  
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [inputPassword, setInputPassword] = useState('');
-  
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [passwordError, setPasswordError] = useState(''); // Error specific to password modal
+  const [passwordError, setPasswordError] = useState('');
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   useEffect(() => {
-    const userString = localStorage.getItem('loggedInUser');
-    if (userString) {
-      const user = JSON.parse(userString);
-      setLoggedInUser(user);
-      // Simulate fetching/setting balance and wallet address
-      // In a real app, this might come from user object or a separate API call
-      setCurrentBalance(user.balance || 1000.00); // Example: default to 1000 if no balance
-      setWalletAddress(user.walletAddress || ''); // Pre-fill from user settings if available
-
-      // Fetch user data from the API using the user ID
-      fetchUserData(user.id);
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      fetchUserData(userId);
     } else {
       setError("User not logged in. Please log in to make a withdrawal.");
+      setIsLoadingUser(false);
     }
   }, []);
 
-    const fetchUserData = async (userId) => {
+  const fetchUserData = async (userId) => {
+    setIsLoadingUser(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`); // Replace with your actual user endpoint
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch user data');
+        const errorBody = await response.json().catch(() => ({}));
+        const errorMessage = errorBody.message || `Failed to fetch user data: ${response.statusText}`;
+        if (response.status === 404) {
+          localStorage.removeItem('loggedInUser');
+          localStorage.removeItem('token');
+          localStorage.removeItem('userId');
+        }
+        throw new Error(errorMessage);
       }
       const userData = await response.json();
-      setCurrentBalance(userData.totalBalance || 0); // Update with data from JSON server
+      setLoggedInUser(userData);
+      setCurrentBalance(userData.balance || 0);
     } catch (err) {
-      console.error('Error fetching user data:', err);
-      setError("Failed to load user data. Please try again later."); // More specific error
+      setError("Failed to load user data. Please try again later.");
+    } finally {
+      setIsLoadingUser(false);
     }
   };
+
   const handleAmountChange = (e) => {
     const value = e.target.value;
-    // Allow only numbers and a single decimal point for currency
     if (/^\d*\.?\d{0,2}$/.test(value) || value === '') {
       setWithdrawalAmount(value);
     }
@@ -73,15 +92,14 @@ const Withdrawal = () => {
       setError("Insufficient funds to process this withdrawal. Your balance is lower than the requested amount.");
       return;
     }
-    
-    if (!walletAddress.trim()) {
-        setError("Please enter your wallet address.");
-        return;
+
+    if (!loggedInUser?.withdrawalAccount) {
+      setError("Please add a withdrawal account (wallet address) in your profile settings before requesting a withdrawal.");
+      return;
     }
 
-    // If all checks pass, show password modal
     setShowPasswordModal(true);
-    setPasswordError(''); 
+    setPasswordError('');
   };
 
   const handlePasswordConfirm = async () => {
@@ -91,59 +109,48 @@ const Withdrawal = () => {
       return;
     }
 
-    // --- Password Verification & Withdrawal ---
     try {
-      // 1. Fetch the full user data again to get the stored password
-      //    THIS IS NOT SECURE FOR PRODUCTION. In production, send `inputPassword`
-      //    to a backend endpoint for verification.
       const userResponse = await fetch(`${API_BASE_URL}/users/${loggedInUser.id}`);
       if (!userResponse.ok) {
         throw new Error('Failed to fetch user data for password verification.');
       }
       const fullUserData = await userResponse.json();
 
-      // 2. Compare the input password with the stored password
-      //    Assuming 'password' field exists in your user object in db.json
       if (fullUserData.password === inputPassword) {
         setShowPasswordModal(false);
         setInputPassword('');
-        setSuccessMessage("Password correct. Processing withdrawal request...");
+        setSuccessMessage("Password correct. Submitting withdrawal request...");
 
-        // 3. Create a withdrawal request entry (if your admin panel uses it)
-        // This is an example, adjust payload as needed for your /withdrawalRequests endpoint
         const withdrawalRecord = {
           userId: loggedInUser.id,
-          username: loggedInUser.username, // Or fullUserData.username
+          username: loggedInUser.username,
           amount: parseFloat(withdrawalAmount),
-          walletAddress: walletAddress,
+          walletAddress: fullUserData.withdrawalAccount,
           requestDate: new Date().toISOString(),
-          status: 'pending', // Admin will confirm this
+          status: 'pending',
         };
 
-        const createRequestRes = await fetch(`${API_BASE_URL}/withdrawals`, { // Changed endpoint to /withdrawals
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(withdrawalRecord),
+        const createRequestRes = await fetch(`${API_BASE_URL}/withdrawalRequests`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(withdrawalRecord),
         });
 
         if (!createRequestRes.ok) {
-            throw new Error('Failed to submit withdrawal request. Please try again.');
+          throw new Error('Failed to submit withdrawal request. Please try again.');
         }
+        // const createdWithdrawal = await createRequestRes.json(); // Data is available if needed locally
 
-        // No balance update here on the client-side directly.
-        // The admin will confirm and the balance will be updated then.
         setSuccessMessage(
           `Withdrawal request for $${parseFloat(withdrawalAmount).toFixed(2)} submitted successfully. It is now pending admin approval.`
         );
+
         setWithdrawalAmount('');
-        // Optionally clear walletAddress or keep it based on UX preference
-        // setWalletAddress('');
       } else {
         setPasswordError("Incorrect password. Please try again.");
       }
     } catch (err) {
       setPasswordError(err.message || "An error occurred during password verification.");
-      console.error("Password confirmation error:", err);
     }
   };
 
@@ -151,13 +158,41 @@ const Withdrawal = () => {
     setShowPasswordModal(false);
     setInputPassword('');
     setPasswordError('');
-  }
+  };
 
-  if (!loggedInUser && !error) {
-    // This state is brief, usually before useEffect runs or if localStorage is slow
+  if (isLoadingUser) {
     return (
       <Container className="mt-5 text-center">
-        <p>Loading user data or checking login status...</p>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+        <p className="mt-2">Loading user data...</p>
+      </Container>
+    );
+  }
+  if (error && !loggedInUser) {
+    return (
+      <Container className="text-center mt-5">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
+    );
+  }
+
+  if (!loggedInUser) {
+    return (
+      <Container className="text-center mt-5">
+        <Alert variant="warning">Please log in to access the withdrawal page.</Alert>
+      </Container>
+    );
+  }
+
+  if (!loggedInUser.withdrawalAccount) {
+    return (
+      <Container className="mt-5 text-center">
+        <Alert variant="info">
+          <p>You need to add a withdrawal account (wallet address) before you can request a withdrawal.</p>
+          <Button as={Link} to="/dashboard/settings" variant="primary">Add Withdrawal Account</Button>
+        </Alert>
       </Container>
     );
   }
@@ -166,25 +201,45 @@ const Withdrawal = () => {
     <Container className="mt-4 mb-5">
       <Row className="justify-content-center">
         <Col md={8} lg={7} xl={6}>
-          <Card className="shadow-lg" style={{ borderRadius: '15px' }}>
-            <Card.Header as="h4" className="text-center bg-primary text-white" style={{ borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}>
-              <i className="fas fa-wallet me-2 align-middle" style={{ fontSize: '28px' }}></i> Request Withdrawal
+          <Card style={gradientCardStyle} className="shadow-lg">
+            <Card.Header
+              as="h4"
+              className="text-center bg-white text-primary fw-bold"
+              style={{
+                borderTopLeftRadius: '2rem',
+                borderTopRightRadius: '2rem',
+                borderBottom: 'none',
+                fontSize: '1.7rem',
+                letterSpacing: '0.02em'
+              }}
+            >
+              <i className="fas fa-wallet me-2 align-middle" style={{ fontSize: '28px' }}></i>
+              Request Withdrawal
             </Card.Header>
             <Card.Body className="p-4">
-              {error && <Alert variant="danger" onClose={() => setError('')} dismissible><i className="fas fa-info-circle me-2"></i>{error}</Alert>}
-              {successMessage && <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible><i className="fas fa-info-circle me-2"></i>{successMessage}</Alert>}
+              {error && <Alert variant="danger" onClose={() => setError('')} dismissible>
+                <i className="fas fa-info-circle me-2"></i>{error}
+              </Alert>}
+              {successMessage && <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible>
+                <i className="fas fa-check-circle me-2"></i>{successMessage}
+              </Alert>}
 
-              <div className="mb-4 p-3 border rounded bg-light text-center shadow-sm cardeeta">
-                <h6 className="text-light mb-1">
-                  <i className="fas fa-dollar-sign me-1" style={{ fontSize: '22px' }}></i> Your Current Balance
+              {/* Balance Card */}
+              <div style={balanceBoxStyle} className="mb-4 text-center">
+                <h6 className="mb-1" style={{ color: '#e0e7ef', letterSpacing: '0.04em' }}>
+                  <i className="fas fa-dollar-sign me-1" style={{ fontSize: '22px' }}></i>
+                  Your Current Balance
                 </h6>
-                <h3 className="fw-bold text-success m-0">${currentBalance.toFixed(2)}</h3>
+                <h2 className="fw-bold m-0" style={{ fontSize: '2.5rem', color: '#fff', textShadow: '0 2px 8px #005bea33' }}>
+                  ${currentBalance.toFixed(2)}
+                </h2>
               </div>
 
               <Form onSubmit={handleSubmitWithdrawalRequest}>
                 <Form.Group className="mb-3" controlId="withdrawalAmount">
-                  <Form.Label className="fw-semibold">
-                    <i className="fas fa-dollar-sign me-2" style={{ fontSize: '20px' }}></i>Amount to Withdraw
+                  <Form.Label className="fw-semibold" style={{ fontSize: '1.1rem' }}>
+                    <i className="fas fa-dollar-sign me-2" style={{ fontSize: '20px' }}></i>
+                    Amount to Withdraw
                   </Form.Label>
                   <InputGroup>
                     <InputGroup.Text className="bg-light border-end-0 text-muted">$</InputGroup.Text>
@@ -195,29 +250,28 @@ const Withdrawal = () => {
                       onChange={handleAmountChange}
                       required
                       inputMode="decimal"
-                      className="border-start-0 text-light"
+                      className="border-start-0"
+                      style={{ fontSize: '1.2rem', background: '#f8fafc' }}
                     />
                   </InputGroup>
                 </Form.Group>
 
-                <Form.Group className="mb-4" controlId="walletAddress">
-                  <Form.Label className="fw-semibold">
-                    <i className="far fa-credit-card me-2" style={{ fontSize: '20px' }}></i>Destination Wallet Address
+                {/* Display Stored Wallet Address */}
+                <Form.Group className="mb-4" controlId="storedWalletAddress">
+                  <Form.Label className="fw-semibold" style={{ fontSize: '1.1rem' }}>
+                    <i className="far fa-credit-card me-2" style={{ fontSize: '20px' }}></i>
+                    Your Withdrawal Account (USDT, TRC20)
                   </Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter your crypto wallet address"
-                    value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
-                    required
-                  />
-                  <Form.Text className="text-warning mt-1">
-                    <i className="fas fa-exclamation-triangle me-1"></i>Make sure it is a USDT, TRC20 wallet.
+                  <div className="form-control bg-light text-muted" style={{ overflowWrap: 'break-word', fontSize: '1.1rem' }}>
+                    {loggedInUser?.withdrawalAccount || 'Not set'}
+                  </div>
+                  <Form.Text className="text-muted mt-1">
+                    This is the address where your funds will be sent.
                   </Form.Text>
                 </Form.Group>
 
                 <div className="d-grid">
-                  <Button variant="primary" type="submit" size="lg" className="fw-bold">
+                  <Button variant="primary" type="submit" size="lg" className="fw-bold" style={{ borderRadius: '1rem', fontSize: '1.2rem' }}>
                     Request Withdrawal
                   </Button>
                 </div>

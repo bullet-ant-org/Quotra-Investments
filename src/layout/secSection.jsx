@@ -1,5 +1,6 @@
 import React from 'react'
-import Nonee from '../assets/nonee.png'
+import Nonee from '../assets/nonee.jpg'
+import { Link } from 'react-router-dom';
 
 const SecSection = () => {
   return (
@@ -8,13 +9,13 @@ const SecSection = () => {
         <div className="row justify-content-center">
           <div className="col-md-5 text-center text-md-start">
             <h1>
-              <div className="display-6 text-light">A TRUELY GLOBAL HEDGEFUND</div>
-              <p className='text-light'>Empowering and elevating millions of users worldwide, and a 4.8 star rating, Quotra has been a lifestyle choice for People all over the world who have decided to take a stand and build a solid foundation of wealth and how money works, with more than $100 Billion in assets, all strategies and analysis are carried out by the best stock brokers and traders from around the world,</p>
-              <p className='text-primary'>Founded on 17th July 2009</p>
+              <div className="display-6 text-primary">A TRUELY GLOBAL HEDGEFUND</div>
+              <p className='text-dark'>What started as a little business of using people's money to buy properties and giving business owners to sell in the streets of london, in the year 1945, a month after the victory in europe, after the world war. <br /> Continued growing, little by little. <br /> And we are pleased to tell you, our beloved Visitor that on day 9th, September 2003, we became truely worldwide <br />And Also are we pleased to let you know that on 4th October 2012, we migrated to the stock market, which is where we now make our stand </p>
+              <Link to="/about" className="btn-sm btn-primary">Learn More</Link>
             </h1>
           </div>
           <div className="col-md-5 text-center">
-            <img src={Nonee} alt="" className="image-fluid text-center" height={270}/>
+            <img src={Nonee} alt="" className="image-fluid text-center" height={500}/>
           </div>
         </div>
       </div>

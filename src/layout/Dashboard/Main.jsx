@@ -1,357 +1,241 @@
 // src/layout/Dashboard/Main.jsx
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Spinner, Alert, ListGroup, Image } from 'react-bootstrap';
-import { API_BASE_URL } from '../../utils/api';
-import { format, parseISO, addDays, differenceInMilliseconds, isBefore } from 'date-fns'; // For formatting dates and calculations
-import { PersonCircle } from 'react-bootstrap-icons';
-// import DashboardNav from './DashboardNav'; // DashboardNav is part of DashboardLayout
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
+import { API_BASE_URL } from '../../utils/api'; // Import API_BASE_URL
 
 // Helper to format currency
 const formatCurrency = (amount) => {
   if (typeof amount !== 'number' || isNaN(amount)) return '$0.00';
-  // Removed the 'k' formatting for simplicity and consistency with other currency displays
   return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 };
 
-const Dashboard = ({ userId, onUserDataUpdate }) => {
+const Dashboard = ({ userId }) => { // Accept userId prop
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  // State for dynamic investment tracking
-  const [timeLeftFormatted, setTimeLeftFormatted] = useState('');
-  const [dynamicallyCalculatedProfit, setDynamicallyCalculatedProfit] = useState(0);
-  const [currentTotalInvestmentValue, setCurrentTotalInvestmentValue] = useState(0);
-
-  const navigate = useNavigate();
-
-  // Fetch user data
-  const fetchUserData = useCallback(async () => {
-    if (!userId) {
-      navigate('/login');
-      setIsLoading(false); // Stop loading if no userId
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`);
-      if (!response.ok) {
-        if (response.status === 401) {
-          navigate('/login');
-        }
-        throw new Error('Failed to fetch user data');
-      }
-      const data = await response.json();
-      setUserData(data);
-      if (onUserDataUpdate) {
-        onUserDataUpdate(data); // Callback to update parent if needed
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to load dashboard data');
-      console.error('Error fetching user data for dashboard:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, navigate, onUserDataUpdate]);
 
   useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
-
-  // useEffect for investment countdown and profit calculation
-  useEffect(() => {
-    if (userData && (userData.investmentStatus === 'active' || userData.investmentStatus === 'completed') &&
-        userData.tradeStartTime && userData.tradeDurationDays > 0 &&
-        typeof userData.currentInvestmentAmount === 'number' &&
-        typeof userData.profitPotential === 'number') {
-
-      const startTime = parseISO(userData.tradeStartTime);
-      const endTime = addDays(startTime, userData.tradeDurationDays);
-      const initialInvestment = userData.currentInvestmentAmount;
-      const totalPotentialProfit = initialInvestment * (userData.profitPotential / 100);
-      const totalDurationMs = differenceInMilliseconds(endTime, startTime);
-
-      if (totalDurationMs <= 0) { // Should not happen if tradeDurationDays > 0
-        setTimeLeftFormatted('Invalid duration');
-        setDynamicallyCalculatedProfit(userData.accruedProfit || 0); // Fallback to server value
-        setCurrentTotalInvestmentValue(initialInvestment + (userData.accruedProfit || 0));
+    const fetchUserData = async () => {
+      if (!userId) {
+        setError('User ID not available.');
+        setIsLoading(false);
         return;
       }
 
-      const calculateValues = () => {
-        const now = new Date();
-        if (isBefore(now, endTime)) { // Investment is active
-          const elapsedMs = differenceInMilliseconds(now, startTime);
-          const progress = Math.min(1, Math.max(0, elapsedMs / totalDurationMs));
-          const currentProfit = totalPotentialProfit * progress;
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Fetch user data, deposit requests, and withdrawal requests in parallel
+        const [userRes, depositRequestsRes, withdrawalRequestsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/users/${userId}`),
+          fetch(`${API_BASE_URL}/depositRequests?userId=${userId}&status=confirmed`), // Filter by userId and status
+          fetch(`${API_BASE_URL}/withdrawalRequests?userId=${userId}&status=confirmed`) // Filter by userId and status
+        ]);
 
-          setDynamicallyCalculatedProfit(currentProfit);
-          setCurrentTotalInvestmentValue(initialInvestment + currentProfit);
-
-          const remainingMs = differenceInMilliseconds(endTime, now);
-          
-          const days = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((remainingMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
-          setTimeLeftFormatted(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-
-        } else { // Investment completed
-          setTimeLeftFormatted('Completed');
-          setDynamicallyCalculatedProfit(totalPotentialProfit); // Full potential profit
-          setCurrentTotalInvestmentValue(initialInvestment + totalPotentialProfit);
-          if (intervalId) clearInterval(intervalId);
+        if (!userRes.ok) {
+          throw new Error(`Failed to fetch user data: ${userRes.statusText}`);
         }
-      };
+        const userData = await userRes.json();
 
-      calculateValues(); // Initial calculation
-      const intervalId = setInterval(calculateValues, 1000);
+        let totalConfirmedDeposits = 0;
+        let lastDepositAmount = 0;
+        if (depositRequestsRes.ok) {
+          const deposits = await depositRequestsRes.json();
+          if (deposits.length > 0) {
+            // Sort by date to find the most recent
+            deposits.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+            lastDepositAmount = parseFloat(deposits[0].amount) || 0;
+            totalConfirmedDeposits = deposits.reduce((sum, deposit) => sum + (parseFloat(deposit.amount) || 0), 0);
+          }
+        } else {
+          console.warn("Failed to fetch deposit requests or no confirmed deposits found.");
+        }
 
-      return () => clearInterval(intervalId);
-    } else if (userData && userData.investmentStatus === 'completed' && userData.tradeDurationDays > 0) {
-        // If completed and had a duration, calculate final profit (could also trust server's accruedProfit)
-        const initialInvestment = userData.currentInvestmentAmount;
-        const totalPotentialProfit = initialInvestment * (userData.profitPotential / 100);
-        setTimeLeftFormatted('Completed');
-        setDynamicallyCalculatedProfit(totalPotentialProfit);
-        setCurrentTotalInvestmentValue(initialInvestment + totalPotentialProfit);
-    } else {
-      // Reset if no active/valid investment for countdown
-      setTimeLeftFormatted('');
-      setDynamicallyCalculatedProfit(userData?.accruedProfit || 0);
-      setCurrentTotalInvestmentValue((userData?.currentInvestmentAmount || 0) + (userData?.accruedProfit || 0));
-    }
-  }, [
-    userData?.investmentStatus,
-    userData?.tradeStartTime,
-    userData?.tradeDurationDays,
-    userData?.currentInvestmentAmount,
-    userData?.profitPotential,
-    userData?.accruedProfit // Added as a fallback
-  ]);
+        let totalConfirmedWithdrawals = 0;
+        let lastWithdrawalAmount = 0;
+        if (withdrawalRequestsRes.ok) {
+          const withdrawals = await withdrawalRequestsRes.json();
+          if (withdrawals.length > 0) {
+            // Sort by date to find the most recent
+            withdrawals.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+            lastWithdrawalAmount = parseFloat(withdrawals[0].amount) || 0;
+            totalConfirmedWithdrawals = withdrawals.reduce((sum, withdrawal) => sum + (parseFloat(withdrawal.amount) || 0), 0);
+          }
+        } else {
+          console.warn("Failed to fetch withdrawal requests or no confirmed withdrawals found.");
+        }
 
+        // Map fetched data to the state structure
+        setUserData({
+          fullName: userData.username || 'User',
+          clientWalletAddress: userData.withdrawalAccount || null,
+          availableBalance: userData.balance || 0,
+          allTimeAvailableBalance: userData.totalIncome || 0, // This might need adjustment based on your logic
+          totalDeposit: totalConfirmedDeposits, // Sum of confirmed deposits
+          lastDeposit: lastDepositAmount,       // Amount of the last confirmed deposit
+          totalWithdraw: totalConfirmedWithdrawals, // Sum of confirmed withdrawals
+          lastWithdrawal: lastWithdrawalAmount,   // Amount of the last confirmed withdrawal
+        });
+
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        setError(err.message || 'Failed to load user data.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userId]); // Re-run effect if userId changes
+
+  const cardData = [
+    {
+      title: 'Available Balance',
+      value: userData?.availableBalance ?? 0,
+      // 'allTimeValue' for balance might be the same as current or a different metric like 'total earnings'
+      // For now, let's use a placeholder or a different interpretation if available
+      allTimeValue: userData?.allTimeAvailableBalance ?? 0, // Or perhaps total earnings if that's what it means
+      borderColor: 'primary',
+    },
+    {
+      title: 'Total Deposit',
+      value: userData?.lastDeposit ?? 0, // Display last deposit amount as the main value
+      allTimeValue: userData?.totalDeposit ?? 0, // Display sum of all deposits as "All Time"
+      borderColor: 'success',
+      isDeposit: true, // Flag to potentially style or handle differently
+    },
+    {
+      title: 'Total Withdraw',
+      value: userData?.lastWithdrawal ?? 0, // Display last withdrawal amount as the main value
+      allTimeValue: userData?.totalWithdraw ?? 0, // Display sum of all withdrawals as "All Time"
+      borderColor: 'danger',
+      isWithdrawal: true, // Flag
+    },
+  ];
+
+  const handleWithdrawClick = () => { // This function definition was immediately after the extra brace
+    // Placeholder for withdrawal logic
+    // You'll likely need to navigate or trigger a modal/component for withdrawal
+    console.log('Withdraw clicked');
+    // Example: navigate('/withdraw'); // You would need to import useNavigate for this
+  };
+  const renderCards = () =>
+    cardData.map((card, index) => (
+      <Col key={index} md={4}>
+        <Card className={`h-100`}>
+          <Card.Body>
+            <Card.Title>{card.title}</Card.Title>
+            {/* For Deposit/Withdrawal, the main value is 'Last', and 'All Time' is the total */}
+            <Card.Text className="fw-bold fs-4">
+              {card.isDeposit || card.isWithdrawal ? `Last: ${formatCurrency(card.value || 0)}` : formatCurrency(card.value || 0)}
+            </Card.Text>
+            <small>All Time: {formatCurrency(card.allTimeValue || 0)}</small>
+          </Card.Body>
+        </Card>
+      </Col>
+    ));
 
   if (isLoading) {
     return (
       <Container className="text-center mt-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
+        <Spinner animation="border" />
       </Container>
     );
   }
 
-  if (error && !userData) { // Show error only if no user data could be loaded
-    return (
-      <Container className="text-center mt-5">
-        <Alert variant="danger">{error}</Alert>
-      </Container>
-    );
+  // You might want more robust error/no data handling here
+  if (error) {
+      return (
+          <Container className="text-center mt-5">
+              <Alert variant="danger">{error}</Alert>
+          </Container>
+      );
   }
-  
-  if (!userData && !isLoading) {
-     return (
-        <Container className="text-center mt-5">
-            <Alert variant="info">No user data available. Please try logging in again.</Alert>
-        </Container>
-     );
-  }
+
+  if (!userData) {
+       return (
+          <Container className="text-center mt-5">
+              <Alert variant="info">No user data available.</Alert>
+          </Container>
+       );
+    }
 
 
   return (
     <Container className="mt-4">
-      {/* Display error even if some stale userData is present */}
-      {error && <Alert variant="warning" className="mb-3">Notice: {error} (Displaying last known data if available)</Alert>}
+      {/* Header Section */}
+      <Row className="mb-4 align-items-center">
+        <Col md={8}>
+          <h2 className="text-secondary">Welcome!</h2>
+          <h2>{userData?.fullName || "Loading User..."}</h2>
+          <p>Here is a summary of your account. Have fun!</p>
+        </Col>
+        <Col md={4} className="text-end">
+          <Button as={Link} to="/dashboard/pricing" variant="primary" className="me-2">
+            Invest & Earn
+          </Button>
+          <Button as={Link} to="/dashboard/deposit" variant="success" className="me-2">
+            Deposit
+          </Button>
+          
+        </Col>
+      </Row>
 
-      {userData && (
-        <>
-          {/* Statistics Cards Section */}
-          <Row className="mb-4">
-            {/* Card 1: Current Accrued Profit */}
-            <Col xl={6} lg={6} md={6} sm={12} className="mb-3">
-              <Card style={{ backgroundColor: '#D9534F', color: 'white' }}> {/* l-bg-cherry */}
-                <Card.Body className="p-4">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="card-title mb-0">Accrued Profit</h5>
-                      <h2 className="d-flex align-items-center mb-0 mt-2">
-                        {formatCurrency(dynamicallyCalculatedProfit)}
-                      </h2>
-                    </div>
-                    <div className="card-icon card-icon-large text-white" style={{ fontSize: '3rem', opacity: 0.8 }}>
-                      <i className="fas fa-chart-line"></i>
-                    </div>
-                  </div>
-                  {/* <div className="progress mt-3" style={{ height: '8px' }}>
-                    <div className="progress-bar" role="progressbar" style={{ width: '60%', backgroundColor: '#17A2B8' }} aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                  </div> */}
-                </Card.Body>
-              </Card>
-            </Col>
+      {/* Wallet Address Section */}
+      <Alert variant="info" className="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        {userData?.clientWalletAddress ? (
+          <div className="d-flex flex-column flex-md-row align-items-md-center w-100" style={{ gap: '1rem' }}>
+            <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
+              <span className="fw-bold">Wallet Address:</span>
+              <span className="ms-2">{userData.clientWalletAddress}</span>
+            </div>
+            <Button
+              as={Link}
+              to="/dashboard/withdrawal"
+              variant="warning"
+              className="mt-2 mt-md-0 "
+              style={{ whiteSpace: 'nowrap', flexShrink: 0}}
+            >
+              Withdraw
+            </Button>
+          </div>
+        ) : (
+          <span>Add a wallet address to protect your funds further.</span>
+        )}
+      </Alert>
 
-            {/* Card 2: Trade Duration / Time Remaining */}
-            <Col xl={6} lg={6} md={6} sm={12} className="mb-3">
-              <Card style={{ backgroundColor: '#30475E', color: 'white' }}> {/* l-bg-blue-dark */}
-                <Card.Body className="p-4">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="card-title mb-0">{timeLeftFormatted && timeLeftFormatted !== "Completed" ? "Time Remaining" : "Trade Duration"}</h5>
-                      <h2 className="d-flex align-items-center mb-0 mt-2">
-                        {timeLeftFormatted && timeLeftFormatted !== "Completed" ? timeLeftFormatted : `${userData.tradeDurationDays || 0} days`}
-                      </h2>
-                    </div>
-                    <div className="card-icon card-icon-large text-white" style={{ fontSize: '3rem', opacity: 0.8 }}>
-                      <i className="fas fa-hourglass-half"></i>
-                    </div>
-                  </div>
-                  {/* <div className="progress mt-3" style={{ height: '8px' }}>
-                    <div className="progress-bar" role="progressbar" style={{ width: '35%', backgroundColor: '#28A745' }} aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"></div>
-                  </div> */}
-                </Card.Body>
-              </Card>
-            </Col>
+      {/* Statistics Cards Section */}
+      <Row className="mb-4">
+        {userData && renderCards()} {/* Only render cards if userData is available */}
+      </Row>
 
-            {/* Card 3: Profit Potential */}
-            <Col xl={6} lg={6} md={6} sm={12} className="mb-3">
-              <Card style={{ backgroundColor: '#1E7E34', color: 'white' }}> {/* l-bg-green-dark */}
-                <Card.Body className="p-4">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="card-title mb-0">Profit Potential</h5>
-                      <h2 className="d-flex align-items-center mb-0 mt-2">
-                        {userData.profitPotential || 0}%
-                      </h2>
-                    </div>
-                    <div className="card-icon card-icon-large text-white" style={{ fontSize: '3rem', opacity: 0.8 }}>
-                      <i className="fas fa-percentage"></i>
-                    </div>
-                  </div>
-                  {/* <div className="progress mt-3" style={{ height: '8px' }}>
-                    <div className="progress-bar" role="progressbar" style={{ width: `${userData.profitPotential || 0}%`, backgroundColor: '#FD7E14' }} aria-valuenow={userData.profitPotential || 0} aria-valuemin="0" aria-valuemax="100"></div>
-                  </div> */}
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* Card 4: Current Investment Value */}
-            <Col xl={6} lg={6} md={6} sm={12} className="mb-3">
-              <Card style={{ backgroundColor: '#D97706', color: 'white' }}> {/* l-bg-orange-dark */}
-                <Card.Body className="p-4">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="card-title mb-0">Current Value</h5>
-                      <h2 className="d-flex align-items-center mb-0 mt-2">
-                        {formatCurrency(currentTotalInvestmentValue)}
-                      </h2>
-                    </div>
-                    <div className="card-icon card-icon-large text-white" style={{ fontSize: '3rem', opacity: 0.8 }}>
-                      <i className="fas fa-wallet"></i>
-                    </div>
-                  </div>
-                  {/* <div className="progress mt-3" style={{ height: '8px' }}>
-                    <div className="progress-bar" role="progressbar" style={{ width: '75%', backgroundColor: '#17A2B8' }} aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                  </div> */}
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
-          {userData.investmentStatus === 'completed' || userData.investmentStatus === 'active' ? (
-            <Card className="mb-4">
-              <Card.Header as="h5">Current Investment Details</Card.Header>
+      {/* You can add other sections here based on user data, e.g., active investments */}
+      {/* Example: */}
+      {/* {userData?.activeInvestment && (
+          <Card className="mb-4">
+              <Card.Header>Active Investment</Card.Header>
               <Card.Body>
-                <ListGroup variant="flush">
-                  <ListGroup.Item>
-                    <strong>Plan Name:</strong> {userData.currentPlanName || 'N/A'}
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Investment Amount:</strong> {formatCurrency(userData.currentInvestmentAmount ?? 0)}
-                  </ListGroup.Item>
-                  {timeLeftFormatted && (
-                    <ListGroup.Item>
-                      <strong>Time Remaining:</strong> {timeLeftFormatted}
-                    </ListGroup.Item>
-                  )}
-                  {userData.tradeStartTime && (
-                    <ListGroup.Item>
-                      <strong>Trade Start Date:</strong> {format(parseISO(userData.tradeStartTime), 'MMMM dd, yyyy HH:mm:ss')}
-                    </ListGroup.Item>
-                  )}
-                  {userData.tradeDurationDays != null && ( // Check for null or undefined
-                    <ListGroup.Item>
-                      <strong>Trade Duration:</strong> {userData.tradeDurationDays} days
-                    </ListGroup.Item>
-                  )}
-                   {userData.profitPotential != null && (
-                    <ListGroup.Item>
-                      <strong>Profit Potential:</strong> {userData.profitPotential}%
-                    </ListGroup.Item>
-                  )}
-                  <ListGroup.Item>
-                    <strong>Current Accrued Profit:</strong> {formatCurrency(dynamicallyCalculatedProfit)}
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Current Investment Value:</strong> {formatCurrency(currentTotalInvestmentValue)}
-                  </ListGroup.Item>
-                   <ListGroup.Item>
-                    <strong>Investment Status:</strong> <span className={`badge bg-${userData.investmentStatus === 'active' ? 'success' : 'primary'}`}>{userData.investmentStatus.replace(/_/g, ' ').toUpperCase()}</span>
-                  </ListGroup.Item>
-                </ListGroup>
+                  <p>Plan: {userData.activeInvestment.planName}</p>
+                  <p>Amount: {formatCurrency(userData.activeInvestment.amount)}</p>
+                  // Add more details as needed
               </Card.Body>
-            </Card>
-          ) : userData.investmentStatus === 'pending_confirmation' ? (
-            <Card className="mb-4">
-              <Card.Header as="h5">Pending Investment</Card.Header>
-              <Card.Body>
-                <Alert variant="warning">
-                  Your investment is pending admin confirmation.
-                </Alert>
-                <ListGroup variant="flush">
-                  <ListGroup.Item>
-                    <strong>Plan Name:</strong> {userData.pendingPlanName || 'N/A'}
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Investment Amount:</strong> {formatCurrency(userData.pendingInvestmentAmount ?? 0)}
-                  </ListGroup.Item>
-                </ListGroup>
-              </Card.Body>
-            </Card>
-          ) : (
-            <Row className="justify-content-center mt-4">
-              <Col md={8} lg={6}>
-                <Card className="text-center shadow-sm border-0 rounded-3 p-4">
-                  <Card.Body>
-                    <Card.Title as="h4" className="mb-3">No Active Investments</Card.Title>
-                    <Card.Text className="fs-5 mb-4">
-                      You currently do not have any active investments. Explore our plans to get started.
-                    </Card.Text>
-                    <Button as={Link} to="/dashboard/pricing" variant="primary" size="lg">
-                      View Investment Plans
-                    </Button>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-          )}
-        </>
-      )}
+          </Card>
+      )} */}
+
     </Container>
   );
-};
 
+}
 
+// The Main component is typically used to wrap the Dashboard and pass props like userId
+// In a real app, userId would likely come from authentication context
 const Main = () => {
-    // In a real app, userId might come from context or a global state after login
-    const userId = localStorage.getItem('userId'); // Ensure 'userId' is set at login
+    // Example: Get userId from localStorage (replace with secure method)
+    const userId = localStorage.getItem('userId');
 
-    // Example of how onUserDataUpdate could be used if DashboardLayout needs user data
-    // const [layoutUserData, setLayoutUserData] = useState(null);
-    // const handleUserDataUpdateForLayout = (data) => {
-    //   setLayoutUserData(data);
-    // };
-
-    return <Dashboard userId={userId} /* onUserDataUpdate={handleUserDataUpdateForLayout} */ />;
+    // You might pass userId and other props to the Dashboard component
+    return <Dashboard userId={userId} />;
 };
 
 export default Main;

@@ -38,7 +38,7 @@ const Schemes = () => { // Renamed component to start with uppercase letter
               </p>
               <div className="mt-3">
                 {/* Replaced javascript:void(0) with '#' */}
-                <a href="#" className="text-custom">Read More <i className="mdi mdi-chevron-right"></i></a>
+                 <i className="mdi mdi-chevron-right"></i>
               </div>
             </div>
             <div className="big-icon h1 text-custom">
@@ -72,7 +72,7 @@ const Schemes = () => { // Renamed component to start with uppercase letter
                 With Quotra Investments, your money is fully secure and any losses will be fully covered by our company
               </p>
               <div className="mt-3">
-                <a href="#" className="text-custom">Read More <i className="mdi mdi-chevron-right"></i></a>
+                <i className="mdi mdi-chevron-right"></i>
               </div>
             </div>
             <div className="big-icon h1 text-custom">
@@ -107,7 +107,7 @@ const Schemes = () => { // Renamed component to start with uppercase letter
                 With us you get the best deals on your investments and the best investments in the industry
               </p>
               <div className="mt-3">
-                <a href="#" className="text-custom">Read More <i className="mdi mdi-chevron-right"></i></a>
+                <i className="mdi mdi-chevron-right"></i>
               </div>
             </div>
             <div className="big-icon h1 text-custom">
@@ -142,7 +142,7 @@ const Schemes = () => { // Renamed component to start with uppercase letter
                 With modern Technology and the best hands in the business, all assets are fully covered
               </p>
               <div className="mt-3">
-                <a href="#" className="text-custom">Read More <i className="mdi mdi-chevron-right"></i></a>
+                <i className="mdi mdi-chevron-right"></i>
               </div>
             </div>
             <div className="big-icon h1 text-custom">
@@ -178,7 +178,7 @@ const Schemes = () => { // Renamed component to start with uppercase letter
                 We offer Loaning Services where you can collect low interest loans to pay back at a later date
               </p>
               <div className="mt-3">
-                <a href="#" className="text-custom">Read More <i className="mdi mdi-chevron-right"></i></a>
+                <i className="mdi mdi-chevron-right"></i>
               </div>
             </div>
             <div className="big-icon h1 text-custom">
@@ -213,7 +213,7 @@ const Schemes = () => { // Renamed component to start with uppercase letter
                 We have a 24/7 support that you can call if there are any issues partaining to your funds and full on lossess coverage
               </p>
               <div className="mt-3">
-                <a href="#" className="text-custom">Read More <i className="mdi mdi-chevron-right"></i></a>
+                <i className="mdi mdi-chevron-right"></i>
               </div>
             </div>
             <div className="big-icon h1 text-custom">

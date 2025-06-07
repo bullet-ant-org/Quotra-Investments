@@ -9,34 +9,35 @@ svg.bi-person-circle {
   box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
   background: #303030;
 }
-
+.profile-top-section .profile-image-dropdown-toggle {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
 /* Camera icon badge */
 #profile-pic-dropdown span {
   box-shadow: 0 2px 8px 0 rgba(255, 255, 255, 0);
 }
+.profile-main-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  background-color: #f8f9fa; /* Light background for placeholder */
+  border: 3px solid #dee2e6;
+}
 
+.profile-avatar-badge { /* For the camera icon */
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: white;
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  line-height: 1; /* Ensures icon is centered if it has weird spacing */
+}
 /* Table styling */
-.table {
-  overflow: hidden;
-  background: linear-gradient(to bottom right, #1f1f1f, #4b4b4b); /* Dark gradient */
-  border-radius: 1.0rem !important;
-  border: none;
-  color: #3b3b3b; /* Changed text color to white */
-  
-}
-.table th, .table td {
-  border: none;
-  background: transparent;
-}
-
 /* Card shadow and padding for soft look */
-.card {  
-  background: linear-gradient(to bottom right, #333333, #1a1a1a); /* Dark gradient */
-  color: #fff; /* Ensure text is readable on the dark background */
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.596);  
-  border: none;  
-  padding: 1rem 0.5rem;  
-}
 
 /* Modal rounded and shadow */
 .modal-content {
@@ -70,17 +71,69 @@ svg.bi-person-circle {
 
 /* Optional: Soft background for the whole dashboard */
  .dashboard-container, body{
-  background: #272727 !important;
+  background: #f5f5f5 !important;
 }
-.cardeeta {
-  border-radius: 1.5rem !important;
-  background: linear-gradient(to bottom right, #333333, #1a1a1a); /* Dark gradient */  
+.profile-avatar-badge .bi-camera {
+  font-size: 1.2rem; /* Adjust icon size */
 }
-/* Add this rule for input fields */
-input[type="text"],
-input[type="email"],
-input[type="tel"] {
-  background: linear-gradient(to bottom right, #131313, #272727); /* Dark gradient */  
-  color: #fff; /* Ensure text is readable on the dark background */
-  border: none;
+.profile-pill-card {
+  min-width: 120px; /* Ensure pills have some minimum width */
+  border-radius: 50px; /* Pill shape */
+  background-color: #f8f9fa; /* Light background for pills */
+  border: 1px solid #dee2e6;
+}
+
+.profile-pill-title {
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.profile-pill-value {
+  font-size: 1.1rem;
+}
+
+.profile-tab-buttons .btn {
+  flex-grow: 1; /* Make buttons take equal width */
+}
+
+.profile-content-area {
+  border-radius: 0.25rem; /* Standard Bootstrap border-radius */
+  min-height: 300px; /* Give it some default height */
+}
+
+.profile-info-table td, .profile-info-table th {
+  vertical-align: middle;
+}
+
+.profile-view-modal-image {
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+  border: 4px solid #0d6efd; /* Bootstrap primary color */
+}
+
+.profile-view-modal-placeholder {
+  color: #6c757d;
+  background-color: #e9ecef;
+  border: 4px solid #0d6efd;
+  border-radius: 50%;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 767.98px) {
+  .profile-top-section .col-md-3, .profile-top-section .col-md-9 {
+    text-align: center !important; /* Center image and pills container */
+  }
+  .profile-pills-container {
+    flex-direction: column !important; /* Stack pills vertically */
+    align-items: center !important; /* Center pills */
+  }
+  .profile-pill-card {
+    width: 80%; /* Make pills take more width on mobile */
+    margin-bottom: 0.5rem !important;
+  }
+  .profile-main-image, .profile-main-image-placeholder {
+    width: 100px;
+    height: 100px;
+  }
 }

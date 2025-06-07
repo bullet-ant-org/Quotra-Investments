@@ -1,103 +1,217 @@
-// src/layout/Dashboard.jsx
-import React, { useState } from 'react';
-import { Outlet, Link, NavLink } from 'react-router-dom';
-import { Nav, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react'; // Added useEffect
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom'; // Added useNavigate, useLocation
+import { Nav, Button, Collapse } from 'react-bootstrap'; // Removed Image, added Collapse
 import DashboardNav from './DashboardNav'; // Ensure DashboardNav is correctly using profileImageUrl from user object
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faUserCircle, faCog, faHeartbeat, faSignOutAlt, faTachometerAlt, 
+  faExchangeAlt, faChartLine, faTags, faChevronDown, faChevronUp, 
+  faWallet, faMoneyBillWave, faDoorOpen, faHandHoldingUsd,
+} from '@fortawesome/free-solid-svg-icons';
+import { PersonCircle } from 'react-bootstrap-icons';
 
-// Sidebar navigation links
-const navLinks = [
-  { to: '.', text: 'Dashboard Home', icon: 'fas fa-home' },
-  { to: 'loans', text: 'Loans', icon: 'fas fa-hand-holding-usd' },
-  { to: 'profile', text: 'Profile', icon: 'fas fa-user-circle' },
-  { to: 'settings', text: 'Settings', icon: 'fas fa-cog' },
-  { to: 'pricing', text: 'Pricing Plans', icon: 'fas fa-tags' },
-  { to: 'support', text: 'Support', icon: 'fas fa-headset' },
-  { to: 'withdrawal', text: 'Withdraw Funds', icon: 'fas fa-money-bill-wave' },
-];
+const DesktopSidebar = ({ isOpen, currentUser, onLogout, openAccountDetails, setOpenAccountDetails }) => {
+  const navigate = useNavigate(); // For navigation from links if needed
+  const location = useLocation();
 
-const DesktopSidebar = ({ currentUserEmail, onLogout }) => (
-  <div
-    className="d-none d-lg-flex flex-column vh-100 p-3 bg-light shadow"
-    style={{
-      width: '250px',
-      zIndex: 10000,
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      height: '100vh',
-      overflowY: 'auto',
-    }}
-  >
-    <Link to="." className="navbar-brand mb-4 mt-2 text-center text-dark d-block">
-      Quotra
-    </Link>
-    <Nav className="flex-column nav-pills">
-      {navLinks.map((link) => (
-        <Nav.Item key={link.to}>
-          <Nav.Link
-            as={NavLink}
-            to={link.to}
-            className={({ isActive }) =>
-              `nav-link d-flex align-items-center mb-1 ${isActive ? 'active-dashboard-link' : ''}`
-            }
-            end={link.to === '.'}
-          >
-            <i className={`${link.icon} me-2`} style={{ width: '1.1em' }}></i>
-            <span>{link.text}</span>
-          </Nav.Link>
-        </Nav.Item>
-      ))}
-    </Nav>
-    <div className="mt-auto text-center pb-2">
-      {currentUserEmail && (
-        <>
-          <small>User: {currentUserEmail}</small>
-          <br />
-        </>
-      )}
-      <Button variant="outline-secondary" size="sm" onClick={onLogout} className="mt-2">
-        Logout
-      </Button>
+  // Close account details on route change for desktop sidebar as well
+  useEffect(() => {
+    // setOpenAccountDetails(false); // Optionally close account details on route change
+  }, [location, setOpenAccountDetails]);
+
+
+  const mainDashboardNavLinks = [
+    { to: '.', text: 'Dashboard', icon: faTachometerAlt },
+    { to: 'transactions', text: 'Transactions', icon: faExchangeAlt },
+    { to: 'investments', text: 'Investment', icon: faChartLine },
+    { to: 'pricing', text: 'Pricing Plans', icon: faTags },
+    { to: 'loan-types', text: 'Apply for Loan', icon: faHandHoldingUsd }, // Link to new Loan Types page
+    { to: 'profile', text: 'My Profile', icon: faUserCircle },
+  ];
+
+  const renderMainDashboardNavLinks = (onClickHandler = () => {}) =>
+    mainDashboardNavLinks.map((link) => (
+      <Nav.Link
+        key={link.text}
+        as={NavLink}
+        to={link.to}
+        onClick={onClickHandler}
+        className={({ isActive }) => `dashboard-nav-link ${isActive ? 'active-dashboard-link' : ''}`}
+        end={link.to === '.'}
+      >
+        <FontAwesomeIcon icon={link.icon} className="me-2 fa-fw" />
+        {link.text}
+      </Nav.Link>
+    ));
+  
+  const renderAccountSubLinks = (onClickHandler = () => {}) => (
+    <>
+      <Nav.Link as={Link} to="profile" className="dashboard-offcanvas-link" onClick={onClickHandler}>
+        <FontAwesomeIcon icon={faUserCircle} className="me-2 fa-fw" /> View Profile
+      </Nav.Link>
+      <Nav.Link as={Link} to="settings" className="dashboard-offcanvas-link" onClick={onClickHandler}>
+        <FontAwesomeIcon icon={faCog} className="me-2 fa-fw" /> Account Setting
+      </Nav.Link>
+      <Nav.Link as={Link} to="activity" className="dashboard-offcanvas-link" onClick={onClickHandler}>
+        <FontAwesomeIcon icon={faHeartbeat} className="me-2 fa-fw" /> Login Activity
+      </Nav.Link>
+    </>
+  );
+
+  const renderProfileToggleAndDetails = (closeMenuHandler = () => {}) => (
+    currentUser && (
+      <>
+        <Button
+          onClick={() => setOpenAccountDetails(!openAccountDetails)}
+          aria-controls={`account-details-collapse-desktop`}
+          aria-expanded={openAccountDetails}
+          variant="link"
+          className={`dashboard-account-toggle text-decoration-none text-dark w-100 d-flex align-items-center p-3`}
+        >
+          {/* Removed profile image and icon */}
+          <div className="flex-grow-1 text-start">
+            <div className="dashboard-offcanvas-full-name">{currentUser.username || 'User'}</div>
+            <div className="dashboard-offcanvas-email text-muted">{currentUser.email}</div>
+          </div>
+          <FontAwesomeIcon icon={openAccountDetails ? faChevronUp : faChevronDown} className="ms-2" />
+        </Button>
+
+        <Collapse in={openAccountDetails}>
+          <div id={`account-details-collapse-desktop`} className="dashboard-offcanvas-account-details p-3 pt-2">
+            <div className="dashboard-offcanvas-balance-section mb-2">
+              <div className="text-uppercase text-muted dashboard-offcanvas-section-title">Main Account Balance</div>
+              <div className="d-flex align-items-baseline">
+                <div className="dashboard-offcanvas-total-balance">
+                  {(currentUser.balance ?? 0).toFixed(2)}
+                </div>
+                <div className="dashboard-offcanvas-currency ms-1">USD</div>
+              </div>
+            </div>
+            {/* Removed profits section */}
+            <Nav className="flex-column">
+              <Nav.Link as={Link} to="withdrawal" className="dashboard-offcanvas-link" onClick={closeMenuHandler}>
+                <FontAwesomeIcon icon={faMoneyBillWave} className="me-2 fa-fw" /> Withdraw Funds
+              </Nav.Link>
+              <Nav.Link as={Link} to="deposit" className="dashboard-offcanvas-link" onClick={closeMenuHandler}>
+                <FontAwesomeIcon icon={faWallet} className="me-2 fa-fw" /> Deposit Funds
+              </Nav.Link>
+            </Nav>
+          </div>
+        </Collapse>
+      </>
+    )
+  );
+
+  return (
+    <div
+      className={`d-none d-lg-flex flex-column vh-100 bg-light shadow desktop-sidebar ${isOpen ? 'open' : 'closed'}`}
+      style={{
+        width: isOpen ? '20vw' : '0px', // Desktop sidebar width as 20vw
+        minWidth: isOpen ? '200px' : '0px', // Optional: minimum width for 20vw
+        position: 'fixed',
+        top: '0px', // Below the top navbar
+        height: 'calc(100vh - 56px)', // Full height minus top navbar
+        left: 0,
+        zIndex: 100000,
+        overflowX: 'hidden',
+        overflowY: 'auto',
+        transition: 'width 0.3s ease-in-out, min-width 0.3s ease-in-out, padding 0.3s ease-in-out',
+        padding: '0', // Padding handled by internal content
+        borderRight: isOpen ? '1px solid rgba(0,0,0,.1)' : 'none',
+      }}
+    >
+      <div style={{ display: isOpen ? 'flex' : 'none', flexDirection: 'column', height: '100%', width: '100%' }}>
+        {/* Desktop Sidebar Header/Brand */}
+        <div className="p-3 border-bottom">
+          <Link to="." className="navbar-brand text-dark d-block text-center fw-bold">
+            Quotra {/* Or your actual brand/logo */}
+          </Link>
+        </div>
+        <hr className="dashboard-nav-divider mt-0" />
+        
+        {renderProfileToggleAndDetails(() => {})} {/* Empty onClick for desktop */}
+        
+        {currentUser && <hr className="dashboard-nav-divider" />}
+        
+        {currentUser && (
+          <Nav className="flex-column p-3 pt-0">
+            {renderAccountSubLinks(() => {})} {/* Empty onClick for desktop */}
+          </Nav>
+        )}
+        
+        {currentUser && <hr className="dashboard-nav-divider" />}
+
+        <Nav className="flex-column p-3 pt-0 flex-grow-1">
+          {renderMainDashboardNavLinks(() => {})} {/* Empty onClick for desktop */}
+        </Nav>
+
+        {currentUser && (
+          <div className={`mt-auto p-3 border-top`}>
+            <Nav.Link
+              onClick={onLogout}
+              className="dashboard-offcanvas-link text-danger"
+              style={{ cursor: 'pointer' }}
+            >
+              <FontAwesomeIcon icon={faDoorOpen} className="me-2 fa-fw" /> Logout
+            </Nav.Link>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const DashboardLayout = () => {
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [openAccountDetailsInSidebar, setOpenAccountDetailsInSidebar] = useState(false); // State for desktop sidebar's account collapse
+  const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
 
-  // Get current user from localStorage (set at login/signup)
-  // Ensure 'user' in localStorage is updated with the Cloudinary profileImageUrl by Settings.jsx/Profile.jsx
-  // Let's consistently use 'loggedInUser' as set by LoginPage
-  const storedUserString = localStorage.getItem('loggedInUser');
-  const currentUser = storedUserString ? JSON.parse(storedUserString) : null;
+  useEffect(() => {
+    const fetchUser = () => {
+      const storedUserString = localStorage.getItem('loggedInUser');
+      const user = storedUserString ? JSON.parse(storedUserString) : null;
+      setCurrentUser(user);
+      if (!user) { // If no user, redirect to login
+        navigate('/login');
+      }
+    };
+    fetchUser();
+    window.addEventListener('authChange', fetchUser);
+    return () => window.removeEventListener('authChange', fetchUser);
+  }, [navigate]);
 
-  // Simple logout: remove user and redirect
   const handleLogout = () => {
     localStorage.removeItem('loggedInUser');
     localStorage.removeItem('userId');
-    localStorage.removeItem('token'); // If you use a token
-    // localStorage.removeItem('user'); // Remove this if 'loggedInUser' is the primary key
-    window.dispatchEvent(new CustomEvent('authChange')); // Notify other components
-    window.location.href = '/login'; // Or use navigate from react-router-dom if DashboardLayout is within Router context
+    localStorage.removeItem('token');
+    window.dispatchEvent(new CustomEvent('authChange'));
+    navigate('/login');
   };
 
+  // If currentUser is null (e.g., during initial load or after logout before redirect),
+  // you might want to show a loader or nothing to prevent errors.
+  if (!currentUser && !localStorage.getItem('loggedInUser')) { // Check localStorage too for initial redirect case
+    // This check helps prevent rendering the layout if the user should be redirected.
+    // The useEffect above will handle the redirect.
+    return null; // Or a loading spinner
+  }
+
   return (
-    <div className="dashboard-container">
-      {/* Top Bar */}
+    <div className={`dashboard-container ${isDesktopSidebarOpen ? 'sidebar-open' : ''}`}>
       <DashboardNav
         isSidebarOpen={isDesktopSidebarOpen}
         toggleSidebar={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
       />
 
-      {/* Desktop Sidebar */}
       <DesktopSidebar
-        currentUserEmail={currentUser?.email}
+        isOpen={isDesktopSidebarOpen}
+        currentUser={currentUser}
         onLogout={handleLogout}
+        openAccountDetails={openAccountDetailsInSidebar}
+        setOpenAccountDetails={setOpenAccountDetailsInSidebar}
       />
-
-      {/* Main Content Area */}
-      {/* If APPWRITE_BUCKET_ID was solely for profile images, it's no longer needed in context. */}
-      {/* If it's used for other Appwrite buckets by child routes, you might keep it or manage context differently. */}
+      
       <main className="content-wrapper"><Outlet /></main>
     </div>
   );

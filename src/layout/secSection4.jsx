@@ -8,7 +8,7 @@ const secSection4 = () => {
       <div className="container-fluid balablu pt-5 py-lg-5">
         <div className="row justify-content-center">
           <div className="col-md-5 text-center">
-            <img src={Nonee2} alt="" className="image-fluid text-center" height={400}/>
+            <img src={Nonee2} alt="" className="image-fluid text-center" height={360}/>
           </div>
           <div className="col-md-5 text-center text-md-start">
             <h1>

@@ -17,6 +17,7 @@ const InvestmentCard = ({ investment }) => (
       {/* Background Gear Icon */}
       <FontAwesomeIcon
         icon={faCog}
+        className="rotating-gear-icon" // Added a class for CSS targeting
         style={{
           position: 'absolute',
           top: '50%',

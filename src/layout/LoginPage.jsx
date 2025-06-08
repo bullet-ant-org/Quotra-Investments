@@ -341,11 +341,7 @@ const LoginPage = () => {
                     </label>
                   </div>
                   <div className="forgot text-secondary">
-                    <small>
-                      <a href="#" onClick={(e) => e.preventDefault()} className="text-decoration-none text-primary">
-                        Forgot Password?
-                      </a>
-                    </small>
+                   
                   </div>
                 </div>
                 <div className="input-group mb-3">

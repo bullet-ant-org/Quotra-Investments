@@ -2972,3 +2972,127 @@ ul li {
   border-bottom: 2px solid #0d6efd;
   display: inline-block; /* So border only spans the text width */
 }
+
+
+
+
+
+
+
+
+
+/* Add to your global CSS file or a component-specific CSS file */
+
+.card-background-icon-wrapper {
+  position: relative;
+  overflow: hidden; /* Helps contain the large icon if it slightly overflows */
+}
+
+.card-content-wrapper {
+  position: relative;
+  z-index: 1; /* Ensures content is above the background icon */
+}
+
+.animated-bg-icon {
+  position: absolute;
+  right: -15px;   /* Adjust for desired positioning */
+  bottom: -15px;  /* Adjust for desired positioning */
+  font-size: 5.5rem; /* Large icon size */
+  opacity: 0.7;   /* Requested opacity */
+  z-index: 0;      /* Behind the content */
+  color: rgba(0, 0, 0, 0.1); /* Default faint color, can be overridden inline */
+  animation: subtle-rotate-pulse 12s infinite linear;
+  /* You can try other animations too! */
+  /* animation: gentle-float 8s infinite ease-in-out, slow-spin 25s infinite linear; */
+}
+
+/* Animation: Subtle Rotate and Pulse */
+@keyframes subtle-rotate-pulse {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.3;
+  }
+  25% {
+    transform: scale(1.03) rotate(5deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.5;
+  }
+  75% {
+    transform: scale(1.03) rotate(-5deg);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.4;
+  }
+}
+
+/* Alternative: Gentle Float Animation */
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+  }
+}
+
+/* Alternative: Slow Spin Animation */
+@keyframes slow-spin {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* Gradient classes for the small icons (if you don't have them already) */
+/* You can customize these gradients */
+.bg-gradient-info {
+  background-image: linear-gradient(45deg, #17a2b8, #117a8b);
+}
+.bg-gradient-success {
+  background-image: linear-gradient(45deg, #28a745, #1e7e34);
+}
+.bg-gradient-warning {
+  background-image: linear-gradient(45deg, #ffc107, #d39e00);
+}
+.bg-gradient-danger {
+  background-image: linear-gradient(45deg, #dc3545, #b02a37);
+}
+
+/* Ensure widgets-icons-2 is styled for the small foreground icons */
+.widgets-icons-2 {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem; /* Adjust icon size inside the circle */
+}
+
+
+
+
+
+
+
+
+/* Add to your global CSS file (e.g., App.css or index.css) */
+
+.rotating-gear-icon {
+  animation: spin 10s linear infinite; /* Adjust duration (10s) as needed */
+}
+
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

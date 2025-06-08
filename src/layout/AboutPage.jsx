@@ -10,7 +10,7 @@ import companyVisionImage1 from '../assets/baggy.png';
 
 // Placeholder image URLs - replace these with your actual images
 const user1 = 'https://overlandexp.com/wp-content/uploads/2016/05/young-white-man-in-suit-300x224.jpg';
-const user2 = 'https://img.freepik.com/free-photo/medium-shot-woman-posing-indoors_23-2149915935.jpg?semt=ais_hybrid&w=740'; // Placeholder for team member images
+const user2 = 'https://shopsfromitaly.com/cdn/shop/files/Audrey_Blue_Marine_Jacket_Skirt_Set_Front_712x1068.jpg?v=1717473214'; // Placeholder for team member images
 const user3 = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR04EtDzhAC9AaLcHnD-NvgAK2P5ihf_JkbTQ&s';
 const user4 = 'https://media.istockphoto.com/id/153677566/photo/attractive-female-white-collar-worker.jpg?s=612x612&w=0&k=20&c=SiG-8cvj7VFs8vI9KrdFAUTynWv1gzEXlpTcLPeMhks=';
 

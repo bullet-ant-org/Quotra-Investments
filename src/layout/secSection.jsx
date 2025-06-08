@@ -15,7 +15,7 @@ const SecSection = () => {
             </h1>
           </div>
           <div className="col-md-5 text-center">
-            <img src={Nonee} alt="" className="image-fluid text-center" height={500}/>
+            <img src={Nonee} alt="" className="image-fluid text-center" height={450}/>
           </div>
         </div>
       </div>

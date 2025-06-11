@@ -231,9 +231,7 @@ const Users = () => {
                   <td>{user.username}</td>
                   <td>
                     <a
-                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(user.email)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`mailto:${user.email}`}
                       className="text-primary text-decoration-underline"
                       title="Email user"
                     >

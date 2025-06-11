@@ -15,15 +15,15 @@ const Deposit = () => {
   const [amount, setAmount] = useState('');
   // New state for the high-level payment system choice
   const [chosenPaymentSystem, setChosenPaymentSystem] = useState('crypto'); // Default to 'crypto' as others are disabled
+  const [chosenCrypto, setChosenCrypto] = useState(''); // New state to track chosen cryptocurrency
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
-  
+
   const [adminSettings, setAdminSettings] = useState(null);
   const [currentWalletAddress, setCurrentWalletAddress] = useState('');
-  
+
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -35,10 +35,18 @@ const Deposit = () => {
         if (!response.ok) throw new Error('Failed to load payment information. Please try again later.');
         const data = await response.json();
         // Assuming data is the settings object directly, or the first element if it's an array
-        const settings = Array.isArray(data) && data.length > 0 ? data[0] : data;
-        setAdminSettings(settings);
-        // Directly set the wallet address, assuming it's a string
-        setCurrentWalletAddress(settings?.checkoutWalletAddress || '');
+        const settings = Array.isArray(data) && data.length > 0 ? data[0] : null; // Handle empty array case
+        if (settings) {
+          setAdminSettings(settings);
+          // Initialize chosenCrypto with the first available crypto or an empty string if none are available
+          const firstCrypto = Object.keys(settings).find(key => ['bitcoin', 'ethereum', 'usdt'].includes(key));
+          setChosenCrypto(firstCrypto || '');
+          // Set initial wallet address based on the first available crypto
+          setCurrentWalletAddress(firstCrypto ? settings[firstCrypto]?.walletAddress || '' : '');
+        } else {
+          setError('Admin settings not found.');
+          setAdminSettings(null); // Ensure adminSettings is null to trigger the error display
+        }
       } catch (err) {
         setError(err.message || 'Could not load payment options.');
         setCurrentWalletAddress(''); // Ensure it's cleared on error
@@ -49,20 +57,37 @@ const Deposit = () => {
     fetchAdminSettings();
   }, []);
 
+  // Updated useEffect to change wallet address dynamically based on chosenCrypto
+  useEffect(() => {
+    if (adminSettings && chosenCrypto) {
+      setCurrentWalletAddress(adminSettings[chosenCrypto]?.walletAddress || '');
+    } else {
+      setCurrentWalletAddress('');
+    }
+  }, [chosenCrypto, adminSettings]);
+
   const handleConfirm = (e) => {
     e.preventDefault();
     setError('');
-    setSuccessMessage('');
     if (!amount || parseFloat(amount) <= 0) {
       setError('Please enter a valid deposit amount.');
       return;
     }
     // Check chosen payment system
     if (chosenPaymentSystem !== 'crypto') {
-        setError('Please select Crypto as the payment method. Other methods are currently unavailable.');
-        return;
+      setError('Please select Crypto as the payment method. Other methods are currently unavailable.');
+      return;
     }
-    if (!currentWalletAddress) {
+    if (!chosenCrypto) {
+      setError('Please select a cryptocurrency.');
+      return;
+    }
+    // Ensure there's a valid address for the chosen crypto
+    if (!adminSettings || !adminSettings[chosenCrypto] || !adminSettings[chosenCrypto].walletAddress) {
+      setError(`Wallet address for ${chosenCrypto} is not available. Please contact support.`);
+      return;
+    }
+    if (!adminSettings[chosenCrypto]?.walletAddress) {
       setError('Wallet address for the selected crypto is not available. Please contact support.');
       return;
     }
@@ -70,14 +95,15 @@ const Deposit = () => {
   };
 
   const copyToClipboard = () => {
-    if (!currentWalletAddress) return;
-    navigator.clipboard.writeText(currentWalletAddress).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-      setError('Failed to copy wallet address. Please copy it manually.');
-    });
+    if (currentWalletAddress) {
+      navigator.clipboard.writeText(currentWalletAddress).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        setError('Failed to copy wallet address. Please copy it manually.');
+      });
+    }
   };
 
   const handlePaymentMade = async () => {
@@ -89,15 +115,21 @@ const Deposit = () => {
     const loggedInUser = loggedInUserString ? JSON.parse(loggedInUserString) : null;
 
     if (!loggedInUser || !loggedInUser.id) {
-      setError("User not logged in. Cannot submit deposit request.");
-      setIsSubmitting(false); 
+      setError('User not logged in. Cannot submit deposit request.');
+      setIsSubmitting(false);
       return;
     }
 
     try {
+      const blockchainDetails = adminSettings[chosenCrypto];
       const depositRecord = {
         userId: loggedInUser.id,
         username: loggedInUser.username,
+        crypto: chosenCrypto, // The selected cryptocurrency
+        blockchain: blockchainDetails?.blockchain || 'Unknown', // The blockchain name
+        walletAddress: blockchainDetails?.walletAddress || '', // The specific wallet address
+        // You might want to remove or adjust the generic fields
+        paymentMethod: 'crypto', // Keep the generic payment method
         amount: parseFloat(amount),
         paymentMethod: 'crypto', // Since we have one address, method is generically 'crypto'
         transactionId: 'USER_WILL_PROVIDE_LATER_OR_VIA_SUPPORT', // Placeholder, ideally user provides this
@@ -118,7 +150,6 @@ const Deposit = () => {
       }
       // const createdDeposit = await response.json(); // Data is available if needed locally
 
-      setSuccessMessage('Deposit request submitted successfully! It will be reviewed by an admin shortly.');
       // Email sending logic removed from this component.
 
       setShowPaymentDetails(false);
@@ -181,7 +212,6 @@ const Deposit = () => {
             </Card.Header>
             <Card.Body className="p-4 p-md-5">
               {error && <Alert variant="danger" onClose={() => setError('')} dismissible>{error}</Alert>}
-              {successMessage && <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible>{successMessage}</Alert>}
               
               {!showPaymentDetails ? (
                 <Form onSubmit={handleConfirm}>
@@ -203,24 +233,33 @@ const Deposit = () => {
                   <Form.Group className="mb-4" controlId="paymentSystem">
                     <Form.Label className="fw-medium text-dark">Select Payment Method</Form.Label>
                     <div className="mt-2">
-                      {['Paypal', 'Stripe', 'Crypto'].map((method) => (
+                      {adminSettings && ['bitcoin', 'ethereum', 'usdt'].map(crypto => (
                         <Form.Check
                           type="radio"
-                          key={method}
-                          id={`payment-method-${method.toLowerCase()}`}
-                          label={method}
-                          name="paymentSystemGroup"
-                          value={method.toLowerCase()}
-                          checked={chosenPaymentSystem === method.toLowerCase()}
-                          onChange={(e) => setChosenPaymentSystem(e.target.value)}
-                          disabled={method !== 'Crypto'}
-                          className="mb-2 fs-6"
+                          key={crypto}
+                          id={`crypto-method-${crypto}`}
+                          label={
+                            <span className="d-flex align-items-center">
+                              {crypto.charAt(0).toUpperCase() + crypto.slice(1)}
+                              {/* Add blockchain name next to the crypto name */}
+                              {adminSettings[crypto] && (
+                                <span className="ms-2 text-muted small">
+                                  ({adminSettings[crypto].blockchain})
+                                </span>
+                              )}
+                            </span>
+                          }
+                          name="cryptoGroup"
+                          value={crypto}
+                          checked={chosenCrypto === crypto}
+                          onChange={(e) => setChosenCrypto(e.target.value)}
+                          className="mb-2 fs-6" // Added some spacing and font size
                         />
                       ))}
                     </div>
-                    {chosenPaymentSystem === 'crypto' && currentWalletAddress && (
-                        <p className="text-muted mt-2 mb-0 small">
-                            Paying with: Crypto
+                    {chosenCrypto && (
+                        <p className="text-muted mt-2 mb-0">
+                            Paying with: {chosenCrypto.charAt(0).toUpperCase() + chosenCrypto.slice(1)}
                         </p>
                     )}
                   </Form.Group>
@@ -229,11 +268,10 @@ const Deposit = () => {
                     variant="primary"
                     type="submit"
                     className="w-100 mt-3"
-                    style={{...buttonStyle, fontSize: '1.1rem'}}
+                    style={{ ...buttonStyle, fontSize: '1.1rem' }}
                     onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
                     onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                     disabled={
-                      isLoadingSettings || 
                       chosenPaymentSystem !== 'crypto' || 
                       !currentWalletAddress // Ensure the wallet address is loaded
                     }
@@ -254,7 +292,7 @@ const Deposit = () => {
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', zIndex: 1050, padding: '1rem'
+            alignItems: 'center', justifyContent: 'center', zIndex: 1050
           }}>
             <Card style={{...luxuriousCardStyle, maxWidth: '550px', width: '100%'}} className="text-center">
               {/* New Header: "Deposit Checkout" to the right */}
@@ -269,58 +307,62 @@ const Deposit = () => {
                 <div className="text-center mb-3">
                   <WalletFill size={40} className="text-primary" />
                 </div>
-
-                <h4 className="fw-semibold text-dark mb-3">Payment Details</h4>
-
-                {/* Amount to Deposit */}
-                <div className="text-start mb-2">
-                  <p className="mb-1 text-dark">
-                    Amount to Deposit: <strong className="text-success">{formatCurrency(parseFloat(amount))}</strong>
-                  </p>
+                {/* Include Blockchain Name */}
+                <h4 className="fw-semibold text-dark mb-3">
+                  {chosenCrypto.charAt(0).toUpperCase() + chosenCrypto.slice(1)}
+                  {adminSettings[chosenCrypto] && (
+                    <span className="ms-2 text-muted small">({adminSettings[chosenCrypto].blockchain})</span>
+                  )}
+                </h4>
+                <div className="mb-3">
+                  Amount to Deposit: <strong className="text-success">{formatCurrency(parseFloat(amount))}</strong>
                 </div>
-
-                {/* Payment Account Label */}
-                <div className="text-start mb-1">
-                  <p className="mb-1 text-dark">
-                    Payment Account : Crypto
-                  </p>
+                <div className="p-3 mb-3 bg-light-subtle shadow-sm" style={{ borderRadius: '0.5rem', border: '1px solid #e0e0e0' }}>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="text-muted small">Wallet Address:</span>
+                    {adminSettings[chosenCrypto] && (
+                      <span className="badge bg-secondary ms-2" style={{ fontSize: '0.85em' }}>
+                        {adminSettings[chosenCrypto].blockchain}
+                      </span>
+                    )}
+                  </div>
+                  <InputGroup size="sm" style={{ maxWidth: '300px' }}>
+                    <Form.Control
+                      type="text"
+                      value={currentWalletAddress}
+                      readOnly
+                      style={{ fontSize: '0.875rem', borderRadius: '0.3rem', height: 'auto', padding: '0.3rem 0.5rem' }}
+                    />
+                    <Button
+                      variant="outline-secondary"
+                      onClick={copyToClipboard}
+                      style={{ borderRadius: '0 0.3rem 0.3rem 0' }}
+                    >
+                      {copied ? <ClipboardCheck size={20} /> : <Clipboard size={20} />}
+                    </Button>
+                  </InputGroup>
                 </div>
-
-                {/* Wallet Address Container */}
-                <div 
-                  className="p-3 mb-2 bg-light-subtle shadow-sm" 
-                  style={{ borderRadius: '0.5rem', border: '1px solid #e0e0e0', wordBreak: 'break-all' }}
-                >
-                  <strong className="text-dark" style={{ fontSize: '0.95rem' }}>{currentWalletAddress}</strong>
+                 {/* Add instructions/important notes */}
+                 <div className="mb-4">
+                  <Alert variant="info" style={{ fontSize: '0.875rem' }}>
+                    <ul className="mb-0">
+                      <li>
+                        Make sure that all payments are made to the above details to avoid loss of funds.
+                      </li>
+                      {adminSettings[chosenCrypto] && (
+                        <li>
+                          This is a {adminSettings[chosenCrypto].blockchain} wallet address.
+                        </li>
+                      )}
+                    </ul>
+                  </Alert>
                 </div>
-
-                {/* Copy Button */}
-                <div className="text-start mb-3">
-                  <Button 
-                    variant="primary" 
-                    size="sm" 
-                    onClick={copyToClipboard}
-                    style={{ borderRadius: '0.3rem', backgroundColor: '#0d6efd', borderColor: '#0d6efd' }} // Explicit blue
-                  >
-                    {copied ? <><ClipboardCheck className="me-1" /> Copied!</> : <><Clipboard className="me-1" /> Copy</>}
-                  </Button>
-                </div>
-
-                {/* Warning Text */}
-                <div className="text-start mb-4">
-                  <p className="text-muted" style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
-                    <strong>Important:</strong> This is a Usdt, TRC20 wallet Address.
-                    Make sure that all payments are made to the above details to avoid loss of funds.
-                    Click the wallet address field or the 'Copy' button to copy the address.
-                  </p>
-                </div>
-
-                {/* "I Have Made The Payment" Button */}
+                {/* Use full width "I Have Made The Payment" Button */}
                 <Button
-                  variant="primary" // Your special blue
+                  variant="primary"
                   onClick={handlePaymentMade}
-                  className="w-100" // Full width
-                  style={{...buttonStyle, fontSize: '1.1rem', backgroundColor: '#0d6efd', borderColor: '#0d6efd'}} // Explicit blue
+                  className="w-100" // Make the button full width
+                  style={{ ...buttonStyle, fontSize: '1.1rem' }}
                   disabled={isSubmitting}
                   onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
                   onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -330,6 +372,8 @@ const Deposit = () => {
                   ) : (
                     "I Have Made The Payment"
                   )}
+
+
                 </Button>
               </Card.Body>
             </Card>

@@ -34,7 +34,7 @@ const reviewsData = [
   {
     id: 5,
     name: 'Ibrahim Idrak',
-    image: 'https://global.ariseplay.com/amg/www.thisdaylive.com/uploads/Pix-18a-3.jpeg', // Placeholder image
+    image: 'https://mymodernmet.com/wp/wp-content/uploads/2017/01/mr-erbil-fashion-group-6.jpg', // Placeholder image
     rating: 5, // Example: 5 stars
     review: 'وب سایت و پلتفرم سرمایه گذاری بسیار خوب بود، من قطعا آنها را توصیه می کنم، آنها من و خانواده ام را تبدیل به چیزی کردند که امروز هستیم.',
   },

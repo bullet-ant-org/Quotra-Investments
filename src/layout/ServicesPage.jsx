@@ -15,9 +15,7 @@ const ServiceCard = ({ icon, title, description, animationClass, iconColor = '#0
         </div>
         <Card.Title as="h4" className="mb-3 fw-bold" style={{ color: '#0d6efd' }}>{title}</Card.Title>
         <Card.Text className="text-muted flex-grow-1">{description}</Card.Text>
-        <Button variant="outline-primary" as={Link} to="/contact" className="mt-auto align-self-center" style={{ borderRadius: '50px', padding: '10px 25px' }}>
-          Learn More
-        </Button>
+        
       </Card.Body>
     </Card>
   </Col>

@@ -114,6 +114,7 @@ const SidebarContent = ({
         <Nav.Link as={NavLink} to="/admin/pricing-admin" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faFolderOpen} className="me-2" fixedWidth />Assets Management</Nav.Link>
         <Nav.Link as={NavLink} to="/admin/loan-types-admin" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faExchangeAlt} className="me-2" fixedWidth />Loans Management</Nav.Link>
         <Nav.Link as={NavLink} to="/admin/settings" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faCog} className="me-2" fixedWidth />Site Settings</Nav.Link>
+        <Nav.Link as={NavLink} to="/admin/loanorders" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faHandshake} className="me-2" fixedWidth />Loan Orders</Nav.Link>
         <Nav.Link as={NavLink} to="/admin/deposit-requests" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faArrowAltCircleDown} className="me-2" fixedWidth />Deposit Requests</Nav.Link>
         <Nav.Link as={NavLink} to="/admin/withdrawal-requests" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faArrowAltCircleUp} className="me-2" fixedWidth />Withdrawal Requests</Nav.Link>
       </Nav>

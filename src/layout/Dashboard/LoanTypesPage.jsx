@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Spinner, Alert, Button, Modal, Form, InputGroup } from 'react-bootstrap'; // Added Modal, Form, InputGroup
 import { API_BASE_URL } from '../../utils/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faTimesCircle, faPercentage, faCalendarAlt, faMoneyBillWave, faTimes, faFileImage, faQuestionCircle } from '@fortawesome/free-solid-svg-icons'; //Added icons
+import { faUserCircle, faCheckCircle, faTimesCircle, faPercentage, faCalendarAlt, faMoneyBillWave, faTimes, faFileImage, faQuestionCircle, faCircleNotch, faSmile, faCamera } from '@fortawesome/free-solid-svg-icons'; //Added icons
 
 const LoanTypesPage = () => {
   const [loanTypes, setLoanTypes] = useState([]); // State to hold fetched loan types
@@ -20,6 +20,29 @@ const LoanTypesPage = () => {
   // Add a new state for modal-specific errors to avoid overwriting page-level errors
   const [modalError, setModalError] = useState('');
 
+  // --- Checkout Flow States ---
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState('form'); // form | verifying | success | payment
+  const [faceImage, setFaceImage] = useState(null);
+  const [homeAddress, setHomeAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [stateVal, setStateVal] = useState('');
+  const [country, setCountry] = useState('');
+  const [driversLicense, setDriversLicense] = useState(null);
+  const [idCard, setIdCard] = useState(null);
+  const [requirementText, setRequirementText] = useState('verifying identity');
+  const [requirementProgress, setRequirementProgress] = useState(0);
+  const [showFaceModal, setShowFaceModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [chosenCrypto, setChosenCrypto] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  // Dummy adminSettings for wallet addresses
+  const adminSettings = {
+    bitcoin: { blockchain: "Bitcoin Network", walletAddress: "balablu123" },
+    ethereum: { blockchain: "erc 10", walletAddress: "esjhfefweuh657" },
+    usdt: { blockchain: "trc20 tron", walletAddress: "wefrcaecrfe678" }
+  };
 
   useEffect(() => {
     setIsLoading(true);
@@ -121,30 +144,223 @@ const LoanTypesPage = () => {
         }
   };
 
-  // --- Loading State ---
-  if (isLoading) {
-    return (
-      <div className="container text-center mt-5 py-5">
-        <Spinner animation="border" variant="primary" role="status">
-          <span className="visually-hidden">Loading Loan Options...</span>
-        </Spinner>
-        <p className="mt-2 text-primary">Fetching available loan types...</p>
-      </div>
-    );
-  }
+  // --- Face Verification Simulation ---
+  const handleFaceIconClick = () => {
+    setShowFaceModal(true);
+    // Simulate face verification steps
+    // In production, use a real face verification SDK
+  };
 
-  // --- Error State ---
-  if (error && loanTypes.length === 0) { // Show full page error only if no loan types were loaded
-    return (
-      <div className="container mt-5 py-5">
-        <Alert variant="danger" className="text-center">
-            <Alert.Heading>Oops! Something went wrong.</Alert.Heading>
-            <p>{error}</p>
+  const handleFakeFaceVerification = () => {
+    // Simulate selfie capture
+    setTimeout(() => {
+      setFaceImage('https://randomuser.me/api/portraits/men/32.jpg'); // Replace with real selfie
+      setShowFaceModal(false);
+    }, 3000);
+  };
+
+  // --- Requirement Check Animation ---
+  const handleCheckRequirement = () => {
+    setCheckoutStep('verifying');
+    setRequirementText('Verifying identity...');
+    setRequirementProgress(0);
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 1;
+      setRequirementProgress(progress);
+      if (progress === 10) setRequirementText('Compiling credit history...');
+      if (progress === 20) setRequirementText('Compiling your Loan amount...');
+      if (progress >= 25) {
+        clearInterval(interval);
+        setCheckoutStep('success');
+      }
+    }, 1000);
+  };
+
+  // --- Copy Wallet Address ---
+  const handleCopyWallet = () => {
+    if (chosenCrypto && adminSettings[chosenCrypto]) {
+      navigator.clipboard.writeText(adminSettings[chosenCrypto].walletAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  };
+
+  // --- Render Modal Content ---
+  const renderCheckoutModal = () => {
+    if (checkoutStep === 'form') {
+      return (
+        <div className="bg-white rounded-4 p-4 shadow-lg" style={{ minWidth: 350, maxWidth: 420 }}>
+          <div className="text-end">
+            <span className="text-primary fw-bold fs-5">Apply Now</span>
+          </div>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Home Address</Form.Label>
+              <Form.Control value={homeAddress} onChange={e => setHomeAddress(e.target.value)} placeholder="Enter home address" required />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>City</Form.Label>
+              <Form.Control value={city} onChange={e => setCity(e.target.value)} placeholder="Enter city" required />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>State</Form.Label>
+              <Form.Control value={stateVal} onChange={e => setStateVal(e.target.value)} placeholder="Enter state" required />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Country</Form.Label>
+              <Form.Control value={country} onChange={e => setCountry(e.target.value)} placeholder="Enter country" required />
+            </Form.Group>
+            <Alert variant="warning" className="mb-3">
+              Please make sure your details are correct before proceeding.
+            </Alert>
+            <Form.Group className="mb-3">
+              <Form.Label>Driver's License</Form.Label>
+              <Form.Control type="file" accept="image/*" onChange={e => setDriversLicense(e.target.files[0])} />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>ID Card</Form.Label>
+              <Form.Control type="file" accept="image/*" onChange={e => setIdCard(e.target.files[0])} />
+            </Form.Group>
+            <div className="text-center my-4">
+              <div
+                style={{ cursor: 'pointer', display: 'inline-block' }}
+                onClick={handleFaceIconClick}
+                title="Click to verify face"
+              >
+                {faceImage ? (
+                  <img src={faceImage} alt="Face" style={{ width: 90, height: 90, borderRadius: '50%', objectFit: 'cover', border: '3px solid #0d6efd' }} />
+                ) : (
+                  <FontAwesomeIcon icon={faUserCircle} size="6x" className="text-secondary" />
+                )}
+              </div>
+              <div className="mt-2 text-muted small">Click the image to verify face</div>
+            </div>
+            <Button
+              variant="primary"
+              className="w-100 fw-bold"
+              style={{ borderRadius: 30 }}
+              onClick={handleCheckRequirement}
+              disabled={!homeAddress || !city || !stateVal || !country || !driversLicense || !idCard || !faceImage}
+            >
+              Check Requirement
+            </Button>
+          </Form>
+        </div>
+      );
+    }
+    if (checkoutStep === 'verifying') {
+      return (
+        <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: 350 }}>
+          <FontAwesomeIcon
+            icon={faCircleNotch}
+            spin
+            size="8x"
+            className="text-primary mb-4"
+            style={{
+              animation: 'pulse 1.5s infinite',
+              border: '6px solid #0d6efd',
+              borderRadius: '50%',
+              padding: 10
+            }}
+          />
+          <div className="fs-5 fw-bold text-primary mb-3" style={{ minHeight: 40 }}>{requirementText}</div>
+          <style>
+            {`
+              @keyframes pulse {
+                0% { opacity: 1; transform: scale(1);}
+                50% { opacity: 0.7; transform: scale(1.08);}
+                100% { opacity: 1; transform: scale(1);}
+              }
+            `}
+          </style>
+        </div>
+      );
+    }
+    if (checkoutStep === 'success') {
+      return (
+        <div className="bg-white rounded-4 p-4 shadow-lg text-center" style={{ minWidth: 350, maxWidth: 420 }}>
+          <FontAwesomeIcon icon={faCheckCircle} size="4x" className="text-success mb-3" />
+          <h2 className="fw-bold text-success">Loan Application Successful</h2>
+          <div className="text-muted mb-2">You have been Approved for the loan amount of</div>
+          <div className="fs-2 text-primary fw-bold mb-4">${selectedLoan?.amountRange || 'N/A'}</div>
+          <Button
+            variant="primary"
+            className="w-100 fw-bold"
+            style={{ borderRadius: 30 }}
+            onClick={() => setShowPaymentModal(true)}
+          >
+            Take Loan
+          </Button>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // --- Payment Modal ---
+  const renderPaymentModal = () => (
+    <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} centered>
+      <Modal.Body className="bg-white rounded-4 p-4 shadow-lg">
+        <div className="text-center mb-3">
+          <span className="fw-bold text-primary fs-5">Loan Checkout</span>
+        </div>
+        <Alert variant="warning" className="mb-3">
+          For your loan to be disbursed, you must pass international credit laws, which don't apply to your region. You are required to pay a small disbursement fee.
         </Alert>
-      </div>
-    );
-  }
+        <div className="text-success fs-2 fw-bold mb-2">${selectedLoan?.applicationFee || 'N/A'}</div>
+        <div className="mb-3">Make a payment of the above amount to any wallet of your choice to receive your loan.</div>
+        <div className="mb-3">
+          {['bitcoin', 'ethereum', 'usdt'].map(crypto => (
+            <Form.Check
+              key={crypto}
+              type="radio"
+              label={crypto.charAt(0).toUpperCase() + crypto.slice(1)}
+              name="cryptoGroup"
+              value={crypto}
+              checked={chosenCrypto === crypto}
+              onChange={e => setChosenCrypto(e.target.value)}
+              className="mb-2"
+            />
+          ))}
+        </div>
+        {chosenCrypto && (
+          <div className="mb-3">
+            <div className="d-flex align-items-center justify-content-between">
+              <span>
+                <span className="fw-bold">{adminSettings[chosenCrypto].blockchain}</span>
+                <span className="ms-2 text-muted small">({adminSettings[chosenCrypto].walletAddress})</span>
+              </span>
+              <Button variant="outline-secondary" size="sm" onClick={handleCopyWallet}>
+                {copied ? "Copied!" : "Copy"}
+              </Button>
+            </div>
+          </div>
+        )}
+        <Button
+          variant="success"
+          className="w-100 fw-bold"
+          style={{ borderRadius: 30 }}
+        >
+          I Have Made The Payment
+        </Button>
+      </Modal.Body>
+    </Modal>
+  );
 
+  // --- Face Modal (Simulated) ---
+  const renderFaceModal = () => (
+    <Modal show={showFaceModal} onHide={() => setShowFaceModal(false)} centered>
+      <Modal.Body className="text-center p-4">
+        <FontAwesomeIcon icon={faCamera} size="4x" className="text-primary mb-3" />
+        <div className="mb-2 fw-bold">Face Verification</div>
+        <div className="mb-3 text-muted">Please follow the instructions:<br />Close your eyes, open your mouth, look left and right.</div>
+        <Button variant="primary" onClick={handleFakeFaceVerification}>Simulate Verification</Button>
+      </Modal.Body>
+    </Modal>
+  );
+
+  // --- Main Render ---
   return (
     <> {/* Wrapper Fragment */}
       <div className="container py-4">
@@ -221,7 +437,7 @@ const LoanTypesPage = () => {
 
       {/* Modal for Loan Application */}
       {selectedLoan && ( // Conditionally render Modal only if a loan is selected
-        <Modal show={showModal} onHide={handleCloseModal} centered backdrop="static" keyboard={false} className="loan-application-modal">
+        <Modal show={showModal} onHide={handleCloseModal} centered backdrop="static" keyboard={false}>
             <Modal.Header className="border-0 pb-0 pt-3 px-4">
                 <Modal.Title as="h5" className="ms-auto text-primary fw-bolder">{selectedLoan?.name} Application</Modal.Title>
                 <Button variant="link" className="text-muted p-0 shadow-none" onClick={handleCloseModal} style={{position: 'absolute', top: '15px', left: '20px', fontSize: '1.2rem'}}>
@@ -285,6 +501,12 @@ const LoanTypesPage = () => {
             </Modal.Footer>
         </Modal>
       )}
+
+      {/* Face Verification Modal (Simulated) */}
+      {showFaceModal && renderFaceModal()}
+
+      {/* Payment Modal */}
+      {showPaymentModal && renderPaymentModal()}
     </> 
   );
 };

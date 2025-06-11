@@ -36,6 +36,7 @@ import AdminOrders from './Admin/AdminLayouts/Orders';
 import UserActionsPage from './Admin/AdminLayouts/UserActionsPage';
 import AdminPricing from './Admin/AdminLayouts/PricingAdmin';
 import AdminLoanTypes from './Admin/AdminLayouts/Loanstypes';
+import LoanOrders from './Admin/AdminLayouts/LoanOrders';
 import AdminSettingsPage from './Admin/AdminLayouts/AdminSettings'; // Import the new settings page
 import WithdrawalRequests from "./Admin/AdminLayouts/Withdrawals";
 import DepositRequests from "./Admin/AdminLayouts/Deposits"; // Import the new deposit requests page
@@ -130,6 +131,7 @@ const App = () => {
 <Route path="add-bonus" element={<UserActionsPage />} />
           <Route path="admintransactions" element={<AdminTransactions />} />
           <Route path="deposit-requests" element={<DepositRequests />} />
+          <Route path="loanorders" element={<LoanOrders />} />
           {/* Withdrawal requests route */}
           <Route path="withdrawal-requests" element={<WithdrawalRequests />} />
         </Route>

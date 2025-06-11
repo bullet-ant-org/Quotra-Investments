@@ -20,6 +20,7 @@ const Loanstypes = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+    const [editingLoanId, setEditingLoanId] = useState(null); // <-- NEW
 
     const fetchExistingLoanTypes = useCallback(async () => {
         setIsLoadingLoanTypes(true);
@@ -72,6 +73,27 @@ const Loanstypes = () => {
         setLoanData((prev) => ({ ...prev, descriptionPoints: newPoints }));
     };
 
+    const handleEditLoanType = (loan) => {
+        setEditingLoanId(loan.id);
+        setLoanData({
+            name: loan.name || '',
+            interestRate: loan.interestRate || '',
+            term: loan.term || '',
+            amountRange: loan.amountRange || '',
+            descriptionPoints: loan.descriptionPoints ? JSON.parse(JSON.stringify(loan.descriptionPoints)) : [{ text: '', included: true }],
+            applicationFee: loan.applicationFee !== null && loan.applicationFee !== undefined ? String(loan.applicationFee) : '',
+            buttonText: loan.buttonText || 'Apply Now',
+        });
+        setError(null);
+        setSuccess(null);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const cancelEdit = () => {
+        setEditingLoanId(null);
+        setLoanData(initialLoanState);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -85,19 +107,32 @@ const Loanstypes = () => {
         }
 
         try {
-            // POST to JSON server's /loanTypes endpoint
-            const response = await fetch(`${API_BASE_URL}/loanTypes`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // No Authorization header for simple JSON server
-                },
-                body: JSON.stringify({
-                    ...loanData,
-                    buttonLink: '/dashboard/loans-checkout', // Hardcode the buttonLink
-                    applicationFee: parseFloat(loanData.applicationFee) || 0, // Ensure it's a number
-                }), // JSON server will auto-assign an 'id'
-            });
+            let response;
+            let successMessage;
+
+            const payload = {
+                ...loanData,
+                buttonLink: '/dashboard/loans-checkout',
+                applicationFee: parseFloat(loanData.applicationFee) || 0,
+            };
+
+            if (editingLoanId) {
+                // PUT request to update
+                response = await fetch(`${API_BASE_URL}/loanTypes/${editingLoanId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                successMessage = `Loan type "${loanData.name}" updated successfully!`;
+            } else {
+                // POST request to add
+                response = await fetch(`${API_BASE_URL}/loanTypes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                successMessage = `Loan type "${loanData.name}" added successfully!`;
+            }
 
             if (!response.ok) {
                 let errData;
@@ -106,15 +141,16 @@ const Loanstypes = () => {
                 } catch (parseError) {
                     errData = { message: `Request failed with status ${response.status}` };
                 }
-                throw new Error(errData.message || `Failed to add loan type. Status: ${response.status}`);
+                throw new Error(errData.message || `Failed to ${editingLoanId ? 'update' : 'add'} loan type. Status: ${response.status}`);
             }
 
-            setSuccess(`Loan type "${loanData.name}" added successfully!`);
-            setLoanData(initialLoanState); // Reset form
-            fetchExistingLoanTypes(); // Refresh the list
+            setSuccess(successMessage);
+            setLoanData(initialLoanState);
+            setEditingLoanId(null);
+            fetchExistingLoanTypes();
         } catch (err) {
             setError(err.message);
-            console.error('Add loan type error:', err);
+            console.error(`${editingLoanId ? 'Update' : 'Add'} loan type error:`, err);
         } finally {
             setIsSubmitting(false);
         }
@@ -151,7 +187,7 @@ const Loanstypes = () => {
     return (
         <div className="container-fluid mt-4">
             <Card className="mb-4">
-                <Card.Header as="h5">Add New Loan Type</Card.Header>
+                <Card.Header as="h5">{editingLoanId ? 'Edit Loan Type' : 'Add New Loan Type'}</Card.Header>
                 <Card.Body>
                     {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
                     {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
@@ -262,12 +298,17 @@ const Loanstypes = () => {
                         <Button variant="primary" type="submit" disabled={isSubmitting} className="mt-3">
                             {isSubmitting ? (
                                 <>
-                                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Adding Loan Type...
+                                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> {editingLoanId ? 'Updating Loan Type...' : 'Adding Loan Type...'}
                                 </>
                             ) : (
-                                'Add Loan Type'
+                                editingLoanId ? 'Update Loan Type' : 'Add Loan Type'
                             )}
                         </Button>
+                        {editingLoanId && (
+                            <Button variant="outline-secondary" onClick={cancelEdit} className="mt-3 ms-2" disabled={isSubmitting}>
+                                Cancel Edit
+                            </Button>
+                        )}
                     </Form>
                 </Card.Body>
             </Card>
@@ -288,12 +329,12 @@ const Loanstypes = () => {
                         <p>No loan types created yet.</p>
                     )}
                     {!isLoadingLoanTypes && existingLoanTypes.length > 0 && (
-                         <>
+                        <>
                         {error && <Alert variant="info" className="mb-2">Note: There was an issue, but some loan types might be displayed from a previous successful fetch or cache.</Alert>}
                         <ListGroup>
                             {existingLoanTypes.map((loan) => (
                                 <ListGroup.Item
-                                    key={loan.id} // JSON server typically uses 'id'
+                                    key={loan.id}
                                     className="d-flex justify-content-between align-items-center flex-wrap"
                                 >
                                     <div style={{ flexGrow: 1, minWidth: '200px', paddingRight: '10px' }}>
@@ -313,15 +354,25 @@ const Loanstypes = () => {
                                             ))}
                                         </ul>
                                     </div>
-                                    <Button
-                                        variant="outline-danger"
-                                        size="sm"
-                                        onClick={() => handleDeleteLoanType(loan.id, loan.name)}
-                                        disabled={isSubmitting}
-                                        className="mt-2 mt-md-0"
-                                    >
-                                        Delete
-                                    </Button>
+                                    <div className="mt-2 mt-md-0">
+                                        <Button
+                                            variant="outline-info"
+                                            size="sm"
+                                            onClick={() => handleEditLoanType(loan)}
+                                            disabled={isSubmitting || editingLoanId === loan.id}
+                                            className="me-2"
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="outline-danger"
+                                            size="sm"
+                                            onClick={() => handleDeleteLoanType(loan.id, loan.name)}
+                                            disabled={isSubmitting}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
                                 </ListGroup.Item>
                             ))}
                         </ListGroup>

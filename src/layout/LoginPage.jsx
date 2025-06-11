@@ -288,6 +288,30 @@ const LoginPage = () => {
     }
   };
 
+  // useEffect for loading CoinGecko widget script
+  useEffect(() => {
+    const scriptId = 'coingecko-marquee-widget-script';
+    // Check if the script is already added to the page
+    if (document.getElementById(scriptId)) {
+      return; // Script already loaded, do nothing
+    }
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = 'https://widgets.coingecko.com/coingecko-coin-price-marquee-widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    // Optional: Cleanup function if you want to remove the script when the component unmounts.
+    // For widget scripts that are meant to be global, this might not be necessary.
+    // return () => {
+    //   const existingScript = document.getElementById(scriptId);
+    //   if (existingScript && existingScript.parentNode) {
+    //     existingScript.parentNode.removeChild(existingScript);
+    //   }
+    // };
+  }, []); // Empty dependency array ensures this runs only once on mount
+
   return (
     <div className="Loginpage" style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
       <NavbarComponent />
@@ -423,6 +447,98 @@ const LoginPage = () => {
             )}
           </div>
         </div>
+      </div>
+{/* New Container as requested */}
+<div className="container my-4">
+  <div
+    className="bg-primary rounded-5 d-flex flex-column flex-md-row align-items-center justify-content-between p-4"
+    style={{
+      height: '50vh',
+      width: '100%',
+      borderRadius: '0.25rem',
+      minHeight: 250,
+      position: 'relative',
+      overflow: 'hidden'
+    }}
+  >
+    {/* Left Side: Animated Bouncing & Pulsing Circle */}
+    <div className="flex-fill d-flex pt-5 justify-content-center align-items-center mb-4 mb-md-0" style={{ minWidth: 180, minHeight: 180 }}>
+      <div className="bouncing-pulse-circle"></div>
+    </div>
+    {/* Right Side: Encouraging Text */}
+    <div className="flex-fill text-center text-md-end">
+      <h3 className="text-white fw-bold mb-0" style={{ lineHeight: 1.3 }}>
+        Secure your future today.<br className="d-none d-md-block" />
+        Invest with us for guaranteed growth and peace of mind.
+      </h3>
+    </div>
+    {/* Animation Styles */}
+    <style>
+      {`
+        .bouncing-pulse-circle {
+          width: 90px;
+          height: 90px;
+          border: 5px solid #fff;
+          border-radius: 50%;
+          background: transparent;
+          animation: bouncePulse 5s cubic-bezier(.68,-0.55,.27,1.55) infinite;
+          box-shadow: 0 0 0 0 rgba(255,255,255,0.5);
+        }
+        @keyframes bouncePulse {
+          0%   { transform: translateY(0);    box-shadow: 0 0 0 0 rgba(255,255,255,0.5);}
+          10%  { transform: translateY(-60px);}
+          20%  { transform: translateY(0);}
+          30%  { transform: translateY(-40px);}
+          40%  { transform: translateY(0);}
+          50%  { transform: translateY(-20px);}
+          60%  { transform: translateY(0);}
+          70%  { transform: translateY(-60px);}
+          75%  { 
+            transform: translateY(-60px) scale(1.15);
+            box-shadow: 0 0 0 15px rgba(255,255,255,0.2);
+          }
+          78%  { 
+            transform: translateY(-60px) scale(1.25);
+            box-shadow: 0 0 0 25px rgba(255,255,255,0.15);
+          }
+          81%  { 
+            transform: translateY(-60px) scale(1.15);
+            box-shadow: 0 0 0 15px rgba(255,255,255,0.2);
+          }
+          84%  { 
+            transform: translateY(-60px) scale(1.25);
+            box-shadow: 0 0 0 25px rgba(255,255,255,0.15);
+          }
+          87%  { 
+            transform: translateY(-60px) scale(1.15);
+            box-shadow: 0 0 0 15px rgba(255,255,255,0.2);
+          }
+          90%  { 
+            transform: translateY(-60px) scale(1);
+            box-shadow: 0 0 0 0 rgba(255,255,255,0.5);
+          }
+          100% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(255,255,255,0.5);}
+        }
+      `}
+    </style>
+  </div>
+</div>
+
+
+      {/* CoinGecko Widget Section */}
+      <div className="container my-4">
+        {/* The script for CoinGecko widgets is loaded in the useEffect hook above. */}
+        {/* You can customize the widget attributes (coin-ids, currency, colors, etc.) as needed. */}
+        <coingecko-coin-price-marquee-widget
+          coin-ids="bitcoin,ethereum,litecoin,cardano,solana,dogecoin" // Example coins
+          currency="usd"
+          background-color="#f8f9fa" // Match page background or choose another (e.g., #ffffff or transparent)
+          locale="en"
+          font-color="#212529" // A dark font color for good readability
+        ></coingecko-coin-price-marquee-widget>
+        <small className="d-block text-center mt-2 text-muted">
+          Live rates powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>.
+        </small>
       </div>
     </div>
   );

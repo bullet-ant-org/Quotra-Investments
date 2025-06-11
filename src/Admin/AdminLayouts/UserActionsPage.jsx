@@ -18,6 +18,7 @@ const UserActionsPage = () => {
   const [selectedUserForAction, setSelectedUserForAction] = useState(null);
   const [actionAmount, setActionAmount] = useState('');
   const [modalError, setModalError] = useState('');
+  const [actionReason, setActionReason] = useState(''); // State for the bonus reason
   const [isSubmittingAction, setIsSubmittingAction] = useState(false); // For modal button loading state
 
   const location = useLocation();
@@ -66,6 +67,7 @@ const UserActionsPage = () => {
     setSelectedUserForAction(user);
     setActionAmount('');
     setModalError('');
+    setActionReason(''); // Reset reason when opening modal
     setShowActionModal(true);
   };
 
@@ -74,6 +76,7 @@ const UserActionsPage = () => {
     setSelectedUserForAction(null);
     setActionAmount('');
     setModalError('');
+    setActionReason(''); // Reset reason when closing modal
   };
 
   const handleConfirmAction = async () => {
@@ -87,6 +90,12 @@ const UserActionsPage = () => {
     const amountValue = parseFloat(actionAmount);
     const userId = selectedUserForAction.id;
     const userName = selectedUserForAction.username;
+    const reasonText = actionReason.trim();
+
+    if (actionType === 'bonus' && !reasonText) {
+        setModalError('Please provide a reason for adding the bonus.');
+        return;
+    }
 
     try {
       // Fetch current user data to get the current balance
@@ -115,7 +124,7 @@ const UserActionsPage = () => {
           userId: userId,
           username: userName,
           amount: amountValue,
-          reason: `Admin added bonus via User Actions Page`,
+          reason: reasonText, // Use the reason from the input
           dateAdded: new Date().toISOString(),
         };
         const bonusRes = await fetch(`${API_BASE_URL}/bonuses`, { // Assuming a /bonuses endpoint
@@ -254,6 +263,7 @@ const UserActionsPage = () => {
         <Modal.Body className="px-4 pt-2 pb-4">
           {modalError && <Alert variant="danger" className="py-2 small">{modalError}</Alert>}
           <Form.Group controlId="actionAmount">
+            {/* Amount Input */}
             <Form.Label className="fw-medium">Amount (USD)</Form.Label>
             <InputGroup>
               <InputGroup.Text style={{ borderTopLeftRadius: '50rem', borderBottomLeftRadius: '50rem', borderRight: 0, background: '#e9ecef' }}>
@@ -277,6 +287,22 @@ const UserActionsPage = () => {
               />
             </InputGroup>
           </Form.Group>
+
+          {/* Reason Textarea (only for bonus) */}
+          {actionType === 'bonus' && (
+            <Form.Group controlId="actionReason" className="mt-3">
+              <Form.Label className="fw-medium">Reason for Bonus</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                placeholder="Enter reason for adding this bonus..."
+                value={actionReason}
+                onChange={(e) => setActionReason(e.target.value)}
+                required // Make reason required for bonus
+                className="rounded-1" // Use rounded-1 for textarea
+              />
+            </Form.Group>
+          )}
         </Modal.Body>
         <Modal.Footer className="border-0 pt-0 d-flex justify-content-center px-4 pb-4">
           <Button 
@@ -290,14 +316,14 @@ const UserActionsPage = () => {
               padding: '0.6rem 1.5rem'
             }}
           >
-            {modalConfirmButtonText}
+            {isSubmittingAction ? (
+              <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" /> Processing...</>
+            ) : (
+              modalConfirmButtonText
+            )}
           </Button>
         </Modal.Footer>
-      </Modal> {isSubmittingAction ? (
-            <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" /> Processing...</>
-          ) : (
-            modalConfirmButtonText
-          )}
+      </Modal>
     </Container>
   );
 };

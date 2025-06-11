@@ -22,6 +22,7 @@ const PricingAdmin = () => {
     const [isLoadingPlans, setIsLoadingPlans] = useState(true);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+    const [editingPlanId, setEditingPlanId] = useState(null); // To store the ID of the plan being edited
 
     const fetchExistingPlans = useCallback(async () => {
         setIsLoadingPlans(true);
@@ -77,6 +78,29 @@ const PricingAdmin = () => {
         setNewPlanData((prev) => ({ ...prev, features: newFeatures }));
     };
 
+    const handleEditPlan = (plan) => {
+        setEditingPlanId(plan.id);
+        setNewPlanData({
+            name: plan.name || '',
+            priceRange: plan.priceRange || '',
+            features: plan.features ? JSON.parse(JSON.stringify(plan.features)) : [{ text: '', included: true }], // Deep copy
+            profitPotential: plan.profitPotential !== null && plan.profitPotential !== undefined ? String(plan.profitPotential) : '',
+            tradeDurationDays: plan.tradeDurationDays !== null && plan.tradeDurationDays !== undefined ? String(plan.tradeDurationDays) : '',
+            buttonText: plan.buttonText || 'Choose Plan',
+            isPopular: plan.isPopular || false,
+            period: plan.period || '',
+            tradeTime: plan.tradeTime || '',
+        });
+        setError(null);
+        setSuccess(null);
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top to see the form
+    };
+
+    const cancelEdit = () => {
+        setEditingPlanId(null);
+        setNewPlanData(initialPlanState);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -90,20 +114,36 @@ const PricingAdmin = () => {
         }
 
         try {
-            // POST to JSON server's /assets endpoint
-            const response = await fetch(`${API_BASE_URL}/assets`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ...newPlanData,
-                    // Ensure numbers are parsed correctly, or set to null if empty
-                    profitPotential: newPlanData.profitPotential === '' ? null : parseFloat(newPlanData.profitPotential),
-                    tradeDurationDays: newPlanData.tradeDurationDays === '' ? null : parseInt(newPlanData.tradeDurationDays, 10),
-                    // JSON server will auto-assign an 'id'
-                }),
-            });
+            const payload = {
+                ...newPlanData,
+                profitPotential: newPlanData.profitPotential === '' ? null : parseFloat(newPlanData.profitPotential),
+                tradeDurationDays: newPlanData.tradeDurationDays === '' ? null : parseInt(newPlanData.tradeDurationDays, 10),
+            };
+
+            let response;
+            let successMessage;
+
+            if (editingPlanId) {
+                // Update existing plan (PUT request)
+                response = await fetch(`${API_BASE_URL}/assets/${editingPlanId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                successMessage = `Pricing plan "${newPlanData.name}" updated successfully!`;
+            } else {
+                // Add new plan (POST request)
+                response = await fetch(`${API_BASE_URL}/assets`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload), // JSON server will auto-assign an 'id'
+                });
+                successMessage = `Pricing plan "${newPlanData.name}" added successfully!`;
+            }
 
             if (!response.ok) {
                 let errData;
@@ -112,15 +152,17 @@ const PricingAdmin = () => {
                 } catch (parseError) {
                     errData = { message: `Request failed with status ${response.status}` };
                 }
-                throw new Error(errData.message || `Failed to add pricing plan. Status: ${response.status}`);
+                throw new Error(errData.message || `Failed to ${editingPlanId ? 'update' : 'add'} pricing plan. Status: ${response.status}`);
             }
 
-            setSuccess(`Pricing plan "${newPlanData.name}" added successfully!`);
+            setSuccess(successMessage);
             setNewPlanData(initialPlanState); // Reset form
+            setEditingPlanId(null); // Exit edit mode
             fetchExistingPlans(); // Refresh the list of plans
+
         } catch (err) {
             setError(err.message);
-            console.error('Add pricing plan error:', err);
+            console.error(`${editingPlanId ? 'Update' : 'Add'} pricing plan error:`, err);
         } finally {
             setIsSubmitting(false);
         }
@@ -155,12 +197,13 @@ const PricingAdmin = () => {
     return (
         <div className="container-fluid mt-4">
             <Card className="mb-4">
-                <Card.Header as="h5">Add New Asset/Pricing Plan</Card.Header>
+                <Card.Header as="h5">{editingPlanId ? 'Edit Asset/Pricing Plan' : 'Add New Asset/Pricing Plan'}</Card.Header>
                 <Card.Body>
                     {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
                     {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
 
                     <Form onSubmit={handleSubmit}>
+                        {/* ... (Form.Group for planName, priceRange, profitPotential, tradeDurationDays, period, tradeTime, isPopular remain the same) ... */}
                         <Row className="mb-3">
                             <Form.Group as={Col} md="6" controlId="planName">
                                 <Form.Label>Plan Name</Form.Label>
@@ -242,7 +285,6 @@ const PricingAdmin = () => {
                             </Form.Group>
                         </Row>
 
-
                         <Card.Subtitle className="mb-2 mt-4 text-muted">Plan Features</Card.Subtitle>
                         {newPlanData.features.map((feature, index) => (
                             <Row key={index} className="mb-2 align-items-center">
@@ -289,12 +331,17 @@ const PricingAdmin = () => {
                         <Button variant="primary" type="submit" disabled={isSubmitting} className="mt-3">
                             {isSubmitting ? (
                                 <>
-                                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Adding Plan...
+                                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> {editingPlanId ? 'Updating Plan...' : 'Adding Plan...'}
                                 </>
                             ) : (
-                                'Add Pricing Plan'
+                                editingPlanId ? 'Update Pricing Plan' : 'Add Pricing Plan'
                             )}
                         </Button>
+                        {editingPlanId && (
+                            <Button variant="outline-secondary" onClick={cancelEdit} className="mt-3 ms-2" disabled={isSubmitting}>
+                                Cancel Edit
+                            </Button>
+                        )}
                     </Form>
                 </Card.Body>
             </Card>
@@ -341,15 +388,25 @@ const PricingAdmin = () => {
                                             ))}
                                         </ul>
                                     </div>
-                                    <Button
-                                        variant="outline-danger"
-                                        size="sm"
-                                        onClick={() => handleDeletePlan(plan.id, plan.name)}
-                                        disabled={isSubmitting}
-                                        className="mt-2 mt-md-0"
-                                    >
-                                        Delete
-                                    </Button>
+                                    <div className="mt-2 mt-md-0">
+                                        <Button
+                                            variant="outline-info"
+                                            size="sm"
+                                            onClick={() => handleEditPlan(plan)}
+                                            disabled={isSubmitting || editingPlanId === plan.id}
+                                            className="me-2"
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="outline-danger"
+                                            size="sm"
+                                            onClick={() => handleDeletePlan(plan.id, plan.name)}
+                                            disabled={isSubmitting}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
                                 </ListGroup.Item>
                             ))}
                         </ListGroup>

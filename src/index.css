@@ -200,7 +200,7 @@ i.bxs-down-arrow {
   border: none !important; /* Optional: Remove border if needed */
 }
 .mainoo .card h5 {
-  color: #48acdd;
+  color: #002cf1;
   font-family: 'Poppins', serif;
 }
 .mainoo p {
@@ -242,7 +242,7 @@ margin-bottom: 45px;
 }
 
 .price-tabs .nav-link {
-color: #00b5ec;
+color: #002cf1;
 font-weight: 500;
 font-family: "Montserrat", sans-serif;
 font-size: 16px;
@@ -283,7 +283,7 @@ border-radius: 10px;
 -webkit-box-shadow: 0 5px 30px 0 rgba(39, 39, 39, 0.15);
         box-shadow: 0 5px 30px 0 rgba(39, 39, 39, 0.15);
 padding: 50px 0 25px;
-background-color: #00b5ec;
+background-color: #002cf1;
 border-radius: 10px;
 position: relative;
 z-index: 0;
@@ -388,7 +388,7 @@ color: #101f41;
 }
 
 .popular .price-top h2, .popular .price-top span, .popular .price-top sup {
-color: #00b5ec;
+color: #002cf1;
 }
 
 .popular .price-content ul *,
@@ -488,7 +488,7 @@ color: #fff;
    }
 }
 .left-box {
-  background: #103cbe;
+  background: #002cf1;
 }
 
 .left-box-title {
@@ -703,7 +703,7 @@ color: #fff;
   text-align: center;
   border-radius: 50%;
   background-color: #bdecfa;
-  color: #00b5ec;
+  color: #002cf1;
   font-size: 14px;
   -webkit-transition: all all 0.5s ease-out 0s;
   -moz-transition: all all 0.5s ease-out 0s;
@@ -728,7 +728,7 @@ color: #fff;
 }
 .deneb_footer .widget_wrapper .widget_link ul li a:hover,
 .deneb_footer .widget_wrapper .widget_link ul li a:focus {
-  color: #00b5ec;
+  color: #002cf1;
 }
 .deneb_footer .widget_wrapper .widget_contact .contact_info .single_info {
   max-width: 250px;
@@ -738,7 +738,7 @@ color: #fff;
 }
 .deneb_footer .widget_wrapper .widget_contact .contact_info .single_info .icon {
   font-size: 12px;
-  color: #00b5ec;
+  color: #002cf1;
   margin-right: 10px;
 }
 .deneb_footer .widget_wrapper .widget_contact .contact_info .single_info .info p a {
@@ -1011,7 +1011,7 @@ color: #fff;
 }
 
 .custom-form-control:focus {
-  border-color: blue !important; /* Border color on focus */
+  border-color: #002cf1 !important; /* Border color on focus */
   /* You might need to override Bootstrap's default focus glow */
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important; /* Optional: Add a Bootstrap-like focus glow in blue */
   /* Or remove the glow completely if you only want the border */
@@ -1521,7 +1521,7 @@ margin-bottom: 12px;
 }
 
 .service-wrapper:hover .icon {
-  background: #0062ff !important;
+  background: #002cf1 !important;
   color: #ffffff !important;
 }
 
@@ -1532,7 +1532,7 @@ margin-bottom: 12px;
 }
 
 .text-custom {
-    color: #dfb913 !important;
+    color: #002cf1 !important;
 }
 
 .uim-svg {
@@ -1572,7 +1572,7 @@ margin-bottom: 12px;
 /* Optional: Style for active NavLink in sidebar/offcanvas */
 .nav-link.active-dashboard-link {
   font-weight: bold;
-  color: #dfb913 !important;
+  color: #002cf1 !important;
   background-color: rgba(var(--bs-primary-rgb), 0.1); /* Use Bootstrap CSS variables */
   border-radius: 0.5rem;
 }
@@ -1608,7 +1608,7 @@ margin-bottom: 12px;
   border-radius: 0.57rem;
 }
 .bg-primary {
-  background-color: rgb(240, 194, 75) !important;
+  background-color: #002cf1 !important;
 }
 .mb-9 {
   margin-bottom: 4.96rem !important;
@@ -1630,11 +1630,11 @@ margin-bottom: 12px;
   margin-top: -5rem !important;
 }
 .border-primary {
-  border-color: rgb(240, 194, 75) !important;
+  border-color: #002cf1 !important;
 }
 
 .text-primary {
-  color: rgb(255, 230, 0) !important;
+  color: #002cf1 !important;
 }
 
 .bg-success {
@@ -1896,7 +1896,7 @@ margin-bottom: 12px;
   border-color: transparent;
 }
 .btn-outline-blue {
-  color: #0d6ce1;
+  color: #002cf1;
   border-color: #5a9beb;
   background-color: transparent;
 }
@@ -1938,7 +1938,7 @@ margin-bottom: 12px;
   color: #002cf1 !important;
 }
 .bg-primary {
-  background-color: #dfb913!important;
+  background-color: #002cf1 !important;
 }
 .text-secondary-d1 {
   color: #5f718b!important;
@@ -2067,7 +2067,7 @@ text-decoration:line-through;;
 }
 
 .border-info {
-  border-left: 5px solid  #0dcaf0 !important;
+  border-left: 5px solid  #002cf1 !important;
 }
 .border-danger {
   border-left: 5px solid  #fd3550 !important;
@@ -2575,7 +2575,7 @@ text-decoration:line-through;;
     bottom: 12px;
     width: 40px;
     height: 1px;
-    background-color: #0cc652;
+    background-color: #002cf1;
 }
 @media (min-width: 768px) {
     .section-title.title-ex1 h2:after {
@@ -2625,7 +2625,7 @@ text-decoration:line-through;;
     right: -35px;
     width: 88px;
     height: 88px;
-    background: #0cc652;
+    background: #002cf1;
     opacity: 0.2;
     border-radius: 8px;
     transform: rotate(45deg);
@@ -2637,7 +2637,7 @@ text-decoration:line-through;;
     right: -35px;
     width: 88px;
     height: 88px;
-    background: #0cc652;
+    background: #002cf1;
     opacity: 0.2;
     border-radius: 8px;
     transform: rotate(45deg);
@@ -2663,8 +2663,8 @@ text-decoration:line-through;;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 .price-card:hover .btn {
-    background: #0cc652;
-    border-color: #0cc652;
+    background: #002cf1;
+    border-color: #002cf1;
 }
 p.price span {
     display: inline-block;
@@ -2672,7 +2672,7 @@ p.price span {
     padding-right: 0;
     font-size: 50px;
     font-weight: 600;
-    color: #0cc652;
+    color: #002cf1;
     position: relative;
 }
 p.price span:before {
@@ -2806,7 +2806,7 @@ ul li {
   transform: translateX(-50%);
   width: 80px;
   height: 4px;
-  background-color: #0d6efd; /* Your favorite blue */
+  background-color: #002cf1; /* Your favorite blue */
   border-radius: 2px;
 }
 
@@ -2865,7 +2865,7 @@ ul li {
   position: relative;
   padding-bottom: 10px;
   margin-bottom: 20px;
-  color: #0d6efd; /* Your favorite blue */
+  color: #002cf1; /* Your favorite blue */
 }
 
 .section-title-left-blue::after {
@@ -2875,7 +2875,7 @@ ul li {
   bottom: 0;
   width: 60px;
   height: 3px;
-  background-color: #0d6efd; /* Your favorite blue */
+  background-color: #002cf1; /* Your favorite blue */
   border-radius: 2px;
 }
 
@@ -2883,7 +2883,7 @@ ul li {
   position: relative;
   padding-bottom: 15px;
   margin-bottom: 25px;
-  color: #0d6efd; /* Your favorite blue */
+  color: #002cf1; /* Your favorite blue */
 }
 
 .section-title-center-blue::after {
@@ -2894,7 +2894,7 @@ ul li {
   transform: translateX(-50%);
   width: 80px;
   height: 4px;
-  background-color: #0d6efd; /* Your favorite blue */
+  background-color: #002cf1; /* Your favorite blue */
   border-radius: 2px;
 }
 
@@ -2967,9 +2967,9 @@ ul li {
 }
 
 .profile-content-area h4 {
-  color: #0d6efd; /* Your favorite blue for headings */
+  color: #002cf1; /* Your favorite blue for headings */
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #0d6efd;
+  border-bottom: 2px solid #002cf1;
   display: inline-block; /* So border only spans the text width */
 }
 
@@ -3095,4 +3095,64 @@ ul li {
   to {
     transform: translate(-50%, -50%) rotate(360deg);
   }
+}
+
+
+
+
+
+
+/* 
+  Add this CSS to your global stylesheet (e.g., index.css, App.css)
+  or create CustomSpinner.css and import it in CustomSpinner.jsx:
+  import './CustomSpinner.css'; 
+*/
+
+.custom-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center children horizontally */
+  justify-content: center; /* Center the .spinner-logo-group in the space above the text */
+  min-height: 83vh; /* Crucial: Make container take full viewport height */
+  width: 100%;      /* Make container take full viewport width */
+  padding: 20px;    /* Adds some space from the viewport edges */
+  box-sizing: border-box; /* Ensures padding doesn't add to 100vh/100vw */
+  text-align: center; /* Centers text if it wraps */
+}
+
+.spinner-logo-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* This group will be centered by the parent's justify-content: center,
+     in the space remaining after the text is pushed to the bottom. */
+}
+
+.custom-spinner {
+  /* Your existing spinner styles, or define new ones. Example: */
+  width: 50px; /* Adjust size as needed */
+  height: 50px; /* Adjust size as needed */
+  border: 5px solid rgba(0, 0, 0, 0.1); /* Light track for the spinner */
+  border-left-color: #0d6efd; /* Spinner color (using Bootstrap primary blue as an example) */
+  border-radius: 50%;
+  animation: custom-spinner-spin 1s linear infinite; /* Renamed animation */
+  margin-bottom: 20px; /* Space between spinner and logo */
+}
+
+/* Animation for the spinner */
+@keyframes custom-spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.custom-spinner-logo {
+  height: 50px; /* As originally specified */
+  /* Spacing below logo is handled by .custom-spinner-text's padding-top or its own margin-top */
+}
+
+.custom-spinner-text {
+  margin-top: auto; /* This is the key: pushes the text to the bottom of the flex container *//* Adds some space between the logo/spinner area and the text. Adjust as needed. */
+  font-size: 1.1rem; /* Example: Adjust font size */
+  color: #333;       /* Example: Adjust text color */
 }

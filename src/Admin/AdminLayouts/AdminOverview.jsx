@@ -8,6 +8,8 @@ import {
 import { API_BASE_URL } from '../../utils/api'; // Import API_BASE_URL
 import { Spinner, Alert } from 'react-bootstrap'; // Import Spinner and Alert
 
+const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
+
 const AdminOverview = () => {
   const [dashboardData, setDashboardData] = useState({
     totalUsers: 0,
@@ -45,21 +47,37 @@ const AdminOverview = () => {
         const totalUsers = usersData.length;
 
         // Calculate Active Users (logged in within the last 30 days)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const activeUserIds = new Set();
+        const thirtyDaysAgoTimestamp = Date.now() - THIRTY_DAYS_IN_MS;
+        const latestLoginTimestamps = {}; // Map to store latest login timestamp per user
+        let activeUsers; // Declare activeUsers to store the calculated count
+
         if (Array.isArray(activitiesData)) {
-          activitiesData.forEach(activity => {
-            // Assuming activity.lastLogin exists and is a valid date string
-            if (activity.lastLogin) {
-              const lastLoginDate = new Date(activity.lastLogin);
-              if (lastLoginDate >= thirtyDaysAgo) {
-                activeUserIds.add(activity.userId);
+          const loginActivities = activitiesData.filter(activity => activity.activityType === 'login');
+
+          loginActivities.forEach(activity => {
+            // Ensure activity has a userId and a valid timestamp
+            if (activity.userId && activity.timestamp) {
+              const activityTimestamp = new Date(activity.timestamp).getTime();
+              // Update the latest timestamp for this user if the current activity is more recent
+              if (!latestLoginTimestamps[activity.userId] || activityTimestamp > latestLoginTimestamps[activity.userId]) {
+                latestLoginTimestamps[activity.userId] = activityTimestamp;
               }
             }
           });
+
+          // Count users whose latest login is within the last 30 days
+          let activeUsersCount = 0;
+          for (const userId in latestLoginTimestamps) {
+            if (latestLoginTimestamps[userId] >= thirtyDaysAgoTimestamp) {
+              activeUsersCount++;
+            }
+          }
+          activeUsers = activeUsersCount;
+
+        } else {
+           // Handle case where activitiesData is not an array
+           activeUsers = 0;
         }
-        const activeUsers = activeUserIds.size;
 
         // Calculate Total Deposits Amount (sum of confirmed deposits)
         const totalDepositsAmount = Array.isArray(depositRequestsData) ? depositRequestsData
@@ -199,3 +217,4 @@ const AdminOverview = () => {
 };
 
 export default AdminOverview;
+        

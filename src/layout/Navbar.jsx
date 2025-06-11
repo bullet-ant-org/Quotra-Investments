@@ -2,10 +2,11 @@ import React from 'react';
 import { Navbar, Nav, NavDropdown, Container, Offcanvas } from 'react-bootstrap';
 import black from '../assets/logo-no-background1.png'; // Adjust the path and filename as needed
 import { Link } from 'react-router-dom';
+import Nonee1 from '../assets/Nonee1.png'; // Adjust the path and filename as needed
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faQuestionCircle, faDollarSign, faUser, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
 
-// Suggestion: Create a Navbar.css file and import it, or add the styles below to your src/index.css
+
 
 const NavbarComponent = () => {
   return (
@@ -28,9 +29,10 @@ const NavbarComponent = () => {
                 Menu
               </Offcanvas.Title>
             </Offcanvas.Header>
-            <Offcanvas.Body className="offcanvas-custom-body">
+            {/* Make Offcanvas.Body a flex container to allow the new section to grow */}
+            <Offcanvas.Body className="offcanvas-custom-body d-flex flex-column">
               {/* Navigation Links */}
-              <Nav className="justify-content-end flex-grow-1 pe-3">
+              <Nav className="justify-content-end pe-3"> {/* Removed flex-grow-1 to allow the container below to fill space */}
                 <Nav.Link as={Link} to="/" className="offcanvas-nav-link">
                   <FontAwesomeIcon icon={faHome} className="me-2" /> Home
                 </Nav.Link>
@@ -57,6 +59,26 @@ const NavbarComponent = () => {
                   </NavDropdown.Item>
                 </NavDropdown>
               </Nav>
+
+              {/* New Container added below the Nav */}
+              <Container fluid className="bg-primary rounded-5 p-3 mt-3 d-sm-none" style={{ flexGrow: 1 }}>
+                {/* Content for this new container will be added by you later */}
+                <div className="row justify-content-center">
+          
+          <div className="col-md-5 text-center">
+            <img src={Nonee1} alt="" className="image-fluid text-center" height={200}/>
+          </div>
+          <div className="col-md-5 text-center text-md-start">
+            <p>
+              
+              <p className='text-light pt-2'>Your Future, Our Responsibility</p>
+              <p className='text-light'>Join Us today for a Better and secured Financial future</p>
+              
+            </p>
+          </div>
+        </div>
+                {/* You can add a placeholder text if needed, e.g., <p className="text-white">Your new section here</p> */}
+              </Container>
             </Offcanvas.Body>
           </Navbar.Offcanvas>
         </Container>

@@ -13,7 +13,7 @@ const Marquee = () => {
   const fetchCoinData = async () => {
     // setLoading(true); // Set loading true at the beginning of fetch if you want a spinner on each refresh
     try {
-      const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&price_change_percentage=24h');
+      const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=8&page=1&sparkline=false&price_change_percentage=24h');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

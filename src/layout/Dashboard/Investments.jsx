@@ -101,29 +101,23 @@ const Investments = () => {
           } else if (typeof asset.priceRange === 'number') {
             priceRange = asset.priceRange;
           }
-          // Trade days
-          let tradeDays = 0;
-          if (asset.tradeTime && typeof asset.tradeTime === 'string') {
-            const match = asset.tradeTime.match(/(\d+)/);
-            if (match) tradeDays = parseInt(match[1], 10);
-          }
-          if (!tradeDays) tradeDays = 30;
+          // Trade duration days
+          let tradeDurationDays = Number(asset.tradeDurationDays) || 1;
           // Dates
           const start = parseISO(order.orderDate);
           const now = new Date();
-          const end = addDays(start, tradeDays);
-          // Time left logic
-          let daysLeft = tradeDays - differenceInDays(now, start);
-          if (daysLeft < 0) daysLeft = 0;
-          let timeLeft = daysLeft === 0 ? 'Completed' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`;
-          // Accrued profit logic
-          let profitPotential = Number(asset.profitPotential) || 0;
           let elapsedDays = differenceInDays(now, start);
           if (elapsedDays < 0) elapsedDays = 0;
-          if (elapsedDays > tradeDays) elapsedDays = tradeDays;
-          let accruedProfit = +(priceRange * profitPotential * (elapsedDays / tradeDays)).toFixed(2);
-          let maxProfit = +(priceRange * profitPotential).toFixed(2);
-          if (accruedProfit > maxProfit) accruedProfit = maxProfit;
+          if (elapsedDays > tradeDurationDays) elapsedDays = tradeDurationDays;
+          // Profit calculation
+          let profitPotential = Number(asset.profitPotential) || 0;
+          let totalProfit = priceRange * (profitPotential / 100);
+          let dailyProfit = totalProfit / tradeDurationDays;
+          let accruedProfit = +(dailyProfit * elapsedDays).toFixed(2);
+          if (accruedProfit > totalProfit) accruedProfit = totalProfit;
+          // Time left logic
+          let daysLeft = tradeDurationDays - elapsedDays;
+          let timeLeft = daysLeft <= 0 ? 'Completed' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`;
 
           return {
             ...order,
@@ -131,6 +125,10 @@ const Investments = () => {
             invested: priceRange,
             timeLeft,
             accruedProfit,
+            totalProfit,
+            tradeDurationDays,
+            profitPotential,
+            priceRange,
           };
         });
 

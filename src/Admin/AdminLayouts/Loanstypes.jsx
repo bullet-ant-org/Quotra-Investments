@@ -8,8 +8,9 @@ const initialLoanState = {
     interestRate: '',
     term: '',
     amountRange: '',
+    quota: '', // <-- Add quota here
     descriptionPoints: [{ text: '', included: true }],
-    applicationFee: '', // Added applicationFee
+    applicationFee: '',
     buttonText: 'Apply Now',
 };
 
@@ -80,6 +81,7 @@ const Loanstypes = () => {
             interestRate: loan.interestRate || '',
             term: loan.term || '',
             amountRange: loan.amountRange || '',
+            quota: loan.quota !== undefined ? loan.quota : '', // <-- Add quota here
             descriptionPoints: loan.descriptionPoints ? JSON.parse(JSON.stringify(loan.descriptionPoints)) : [{ text: '', included: true }],
             applicationFee: loan.applicationFee !== null && loan.applicationFee !== undefined ? String(loan.applicationFee) : '',
             buttonText: loan.buttonText || 'Apply Now',
@@ -114,6 +116,7 @@ const Loanstypes = () => {
                 ...loanData,
                 buttonLink: '/dashboard/loans-checkout',
                 applicationFee: parseFloat(loanData.applicationFee) || 0,
+                quota: loanData.quota, // <-- Add quota to payload
             };
 
             if (editingLoanId) {
@@ -239,6 +242,19 @@ const Loanstypes = () => {
                             </Form.Group>
                         </Row>
                         <Row className="mb-3">
+                            <Form.Group as={Col} md="6" controlId="quota">
+                                <Form.Label>Quota (Approved Loan Amount)</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    name="quota"
+                                    value={loanData.quota}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., 5000"
+                                    min="0"
+                                    step="0.01"
+                                    required
+                                />
+                            </Form.Group>
                             <Form.Group as={Col} md="6" controlId="applicationFee">
                                 <Form.Label>Application Fee (USD)</Form.Label>
                                 <Form.Control

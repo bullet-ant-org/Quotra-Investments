@@ -312,6 +312,16 @@ const LoginPage = () => {
     // };
   }, []); // Empty dependency array ensures this runs only once on mount
 
+  useEffect(() => {
+    // ...existing session check code...
+
+    // Check for ?view=signup or #signup in the URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view') === 'signup' || window.location.hash === '#signup') {
+      setIsLoginView(false);
+    }
+  }, [navigate, location.pathname]); // Rerun on navigation
+
   return (
     <div className="Loginpage" style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
       <NavbarComponent />

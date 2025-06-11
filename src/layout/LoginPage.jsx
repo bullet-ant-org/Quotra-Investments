@@ -341,7 +341,7 @@ const LoginPage = () => {
               <form onSubmit={handleLoginSubmit} className="w-100">
                 <div className="header-text mb-4 text-primary text-end">
                   <h2>Hello, Again!</h2>
-                  <p className="text-muted">Welcome back, you've been missed.</p>
+                  <p className="text-muted">Login Now, or click the signup button to Signup</p>
                 </div>
                 <div className="input-group mb-3">
                   <input

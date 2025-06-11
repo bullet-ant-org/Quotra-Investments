@@ -11,4 +11,11 @@ export const EMAILJS_OTP_TEMPLATE_ID = 'otp_service'; // e.g., 'template_871po4g
 export const EMAILJS_TRANSACTION_TEMPLATE_ID = 'transaction_template'; // If you have other templates
 export const EMAILJS_PUBLIC_KEY = 'FcvI1xoYSIZW2Lmbc'; // e.g., 'O5SkCuTrFuMY5u50'
 
+
+// New EmailJS Account Config
+export const EMAILJS_NEW_SERVICE_ID = 'Email-id'; // e.g., 'service_xxxxxxx'
+export const EMAILJS_NEW_TEMPLATE_ID = 'Signup_id'; // e.g., 'template_xxxxxxx'
+export const EMAILJS_NEW_PUBLIC_KEY = '8WXlKt6LWE6G-AgTR'; // e.g., 'xxxxxxx'
+
+
 export const GNEWS_API_KEY = 'd4f4bcd296d38c27184d6cee59ccd79c';

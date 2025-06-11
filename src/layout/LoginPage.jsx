@@ -328,7 +328,7 @@ const LoginPage = () => {
       <div className="container d-flex justify-content-center align-items-center my-4">
         <div className="form-container bg-white p-4 p-md-5 shadow-lg col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5" style={{ borderRadius: '0.5rem' }}>
           <div className="row align-items-center">
-            {error && <div className="alert alert-danger w-100 mb-3">{error}</div>}
+            {/* Removed all alert components */}
             {loading && (
               <div className="text-center w-100 my-3">
                 <div className="spinner-border text-primary" role="status">

@@ -3,10 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import emailjs from '@emailjs/browser'; // Import EmailJS
-import { API_BASE_URL, // Keep API_BASE_URL for JSON server calls
+import {
+  API_BASE_URL,
   EMAILJS_SERVICE_ID,
   EMAILJS_OTP_TEMPLATE_ID,
-  EMAILJS_PUBLIC_KEY } from '../utils/api';
+  EMAILJS_PUBLIC_KEY,
+  EMAILJS_NEW_SERVICE_ID,
+  EMAILJS_NEW_TEMPLATE_ID,
+  EMAILJS_NEW_PUBLIC_KEY
+} from '../utils/api';
 import NavbarComponent from './Navbar'; // Assuming you want the navbar here too
 const OtpVerificationPage = () => {
   const navigate = useNavigate();
@@ -125,6 +130,27 @@ const OtpVerificationPage = () => {
     }
   };
 
+  // Function to send new user notification to admin (using new EmailJS account)
+  const sendNewUserAdminNotification = async (user) => {
+    const templateParams = {
+      username: user.username,
+      email: user.email,
+      signup_time: new Date().toLocaleString(),
+      referral_code: user.referralCode || '', // If you store referral code
+    };
+    try {
+      await emailjs.send(
+        EMAILJS_NEW_SERVICE_ID,
+        EMAILJS_NEW_TEMPLATE_ID,
+        templateParams,
+        EMAILJS_NEW_PUBLIC_KEY
+      );
+      // Optionally: console.log('Admin notified of new signup!');
+    } catch (err) {
+      // Optionally: console.error('Failed to notify admin:', err);
+    }
+  };
+
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setError('');
@@ -154,7 +180,7 @@ const OtpVerificationPage = () => {
       const now = new Date();
       const otpExpiryTime = new Date(user.otpExpires);
 
-      if (user.otp !== enteredOtp) { // Comparing plain text OTPs for JSON server simulation
+      if (user.otp !== enteredOtp) {
         throw new Error('Invalid OTP. Please try again.');
       }
       if (now > otpExpiryTime) {
@@ -174,6 +200,9 @@ const OtpVerificationPage = () => {
       if (!updateResponse.ok) {
         throw new Error('Failed to update account status. Please try again.');
       }
+
+      // --- Notify admin of new signup (using new EmailJS account) ---
+      await sendNewUserAdminNotification(updatedUser);
 
       setSuccess('Account verified successfully! Redirecting to login...');
       setTimeout(() => navigate('/login'), 2000);

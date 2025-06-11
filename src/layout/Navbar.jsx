@@ -2,7 +2,7 @@ import React from 'react';
 import { Navbar, Nav, NavDropdown, Container, Offcanvas } from 'react-bootstrap';
 import black from '../assets/logo-no-background1.png'; // Adjust the path and filename as needed
 import { Link } from 'react-router-dom';
-import Nonee1 from '../assets/Nonee1.png'; // Adjust the path and filename as needed
+import Nonee1 from '../assets/nonee1.png'; // Adjust the path and filename as needed
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faQuestionCircle, faDollarSign, faUser, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
 

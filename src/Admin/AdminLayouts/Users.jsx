@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Table, Pagination, Dropdown, Button, Image, Spinner, Alert, Card, Form, InputGroup } from 'react-bootstrap';
 import { PersonCircle } from 'react-bootstrap-icons'; // Default avatar
 import { API_BASE_URL } from '../../utils/api'; // Import your API_BASE_URL
+ import { differenceInDays, parseISO } from 'date-fns'; // Add this import
+
+const INACTIVE_DAYS = 14; // Same as AdminOverview.jsx
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -129,6 +132,18 @@ const Users = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // Helper to determine if user is inactive
+  const isUserInactive = (user) => {
+    if (!user.lastLogin && !user.lastActive) return true;
+    const last = user.lastActive || user.lastLogin;
+    try {
+      const lastDate = typeof last === 'string' ? parseISO(last) : new Date(last);
+      return differenceInDays(new Date(), lastDate) >= INACTIVE_DAYS;
+    } catch {
+      return false;
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -183,10 +198,17 @@ const Users = () => {
             </thead>
             <tbody>
               {currentUsers.map((user) => (
-                <tr key={user.id}>
+                <tr
+                  key={user.id}
+                  style={
+                    isUserInactive(user)
+                      ? { background: 'rgba(255,0,0,0.07)' }
+                      : {}
+                  }
+                >
                   <td>
                     <Image
-                      src={user.profileImageUrl || user.profilePictureUrl || ''} // Added fallback for profilePictureUrl
+                      src={user.profileImageUrl || user.profilePictureUrl || ''}
                       onError={(e) => {
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'inline-block';
@@ -207,13 +229,23 @@ const Users = () => {
                     />
                   </td>
                   <td>{user.username}</td>
-                  <td>{user.email}</td>
+                  <td>
+                    <a
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(user.email)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary text-decoration-underline"
+                      title="Email user"
+                    >
+                      {user.email}
+                    </a>
+                  </td>
                   <td>
                     <span
                       className={`badge bg-${
                         user.role === 'admin'
                           ? 'danger'
-                          : user.role === 'editor' // Assuming 'editor' is a possible role
+                          : user.role === 'editor'
                           ? 'warning'
                           : 'secondary'
                       }`}

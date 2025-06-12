@@ -131,6 +131,39 @@ const LoanTypesPage = () => {
   };
 
   // --- Payment Modal ---
+  const handlePayment = async () => {
+    // Compile all form data
+    const loanOrder = {
+      loanTypeId: selectedLoan?.id,
+      loanTypeName: selectedLoan?.name,
+      quota: selectedLoan?.quota,
+      applicationFee: selectedLoan?.applicationFee,
+      homeAddress,
+      city,
+      state: stateVal,
+      country,
+      driversLicense: driversLicense ? driversLicense.name : '',
+      idCard: idCard ? idCard.name : '',
+      faceImage: !!faceImage, // Just a flag, or you can send the base64 if needed
+      chosenCrypto,
+      paymentWallet: adminSettings?.[chosenCrypto]?.walletAddress || '',
+      paymentBlockchain: adminSettings?.[chosenCrypto]?.blockchain || '',
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      await fetch(`${API_BASE_URL}/loanOrders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loanOrder),
+      });
+      window.location.href = '/main'; // Redirect to main.jsx page
+    } catch (err) {
+      // Optionally handle error (e.g., show a toast)
+      window.location.href = '/main'; // Still redirect to main.jsx
+    }
+  };
+
   const renderPaymentModal = () => (
     <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} centered>
       <Modal.Body className="bg-white rounded-4 p-4 shadow-lg">
@@ -159,12 +192,39 @@ const LoanTypesPage = () => {
         </div>
         {chosenCrypto && adminSettings && adminSettings[chosenCrypto] && (
           <div className="mb-3">
-            <div className="d-flex align-items-center justify-content-between">
-              <span>
+            <div className="d-flex align-items-center justify-content-between flex-wrap" style={{ gap: 8 }}>
+              <span
+                className="wallet-address-box"
+                style={{
+                  background: "#f1f3f5",
+                  borderRadius: 8,
+                  padding: "6px 10px",
+                  fontSize: 13,
+                  maxWidth: 180,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  marginRight: 8,
+                  flex: "1 1 auto",
+                  minWidth: 0,
+                  cursor: "pointer",
+                  userSelect: "all"
+                }}
+                title={adminSettings[chosenCrypto].walletAddress}
+                onClick={e => {
+                  e.preventDefault();
+                  // Optionally: select text or copy on click
+                }}
+              >
                 <span className="fw-bold">{adminSettings[chosenCrypto].blockchain}</span>
-                <span className="ms-2 text-muted small">({adminSettings[chosenCrypto].walletAddress})</span>
+                <span className="ms-2 text-muted small">{adminSettings[chosenCrypto].walletAddress}</span>
               </span>
-              <Button variant="outline-secondary" size="sm" onClick={handleCopyWallet}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                style={{ whiteSpace: "nowrap", flex: "0 0 auto" }}
+                onClick={handleCopyWallet}
+              >
                 {copied ? "Copied!" : "Copy"}
               </Button>
             </div>
@@ -174,7 +234,7 @@ const LoanTypesPage = () => {
           variant="success"
           className="w-100 fw-bold"
           style={{ borderRadius: 30 }}
-          onClick={() => window.location.href = '/main'}
+          onClick={handlePayment}
         >
           I Have Made The Payment
         </Button>

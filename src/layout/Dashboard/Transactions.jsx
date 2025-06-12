@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Card, Spinner, Alert, Pagination, Accordion } from 'react-bootstrap';
-import { format } from 'date-fns'; // Using date-fns for date formatting
-import { API_BASE_URL } from '../../utils/api'; // Import your API base URL
+import { format } from 'date-fns';
+import { API_BASE_URL } from '../../utils/api';
 
 // Helper to format currency
 const formatCurrency = (amount) => {
@@ -15,23 +15,24 @@ const getTypeColor = (type) => {
     case 'deposit':
       return 'success';
     case 'withdrawal':
-    case 'loan_withdrawal': // Loan withdrawal is also red
+    case 'loan_withdrawal':
       return 'danger';
-    case 'investment': // Assuming 'investment' type might come from a generic /transactions endpoint if you merge later
-    case 'investment_paid_back': // Investment paid back is primary
+    case 'investment':
+    case 'investment_paid_back':
       return 'primary';
     case 'bonus_added':
       return 'secondary';
+    case 'loan':
+      return 'info';
     default:
-      return 'info'; // Default color for unknown types
+      return 'info';
   }
 };
 
-// Map transaction status to Bootstrap colors
 const getStatusColor = (status) => {
   switch (status.toLowerCase()) {
     case 'completed':
-    case 'confirmed': // Assuming confirmed is equivalent to completed for status display
+    case 'confirmed':
       return 'success';
     case 'pending':
       return 'warning';
@@ -51,7 +52,7 @@ const Transactions = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [userBalance, setUserBalance] = useState(0);
-  const userId = localStorage.getItem('userId'); // Get userId from localStorage
+  const userId = localStorage.getItem('userId');
 
   const fetchTransactions = useCallback(async () => {
     if (!userId) {
@@ -71,23 +72,26 @@ const Transactions = () => {
       const userData = await userRes.json();
       setUserBalance(userData.balance || 0);
 
-      // Fetch data from all endpoints for the specific user
-      const [depositsRes, withdrawalsRes, bonusesRes, investmentsRes] = await Promise.all([
+      // Fetch all transaction endpoints including loanOrders
+      const [depositsRes, withdrawalsRes, bonusesRes, investmentsRes, loanOrdersRes] = await Promise.all([
         fetch(`${API_BASE_URL}/depositRequests?userId=${userId}`),
         fetch(`${API_BASE_URL}/withdrawalRequests?userId=${userId}`),
         fetch(`${API_BASE_URL}/bonuses?userId=${userId}`),
         fetch(`${API_BASE_URL}/assetOrders?userId=${userId}`),
+        fetch(`${API_BASE_URL}/loanOrders?userId=${userId}`),
       ]);
 
       if (!depositsRes.ok) throw new Error(`Failed to fetch deposit requests: ${depositsRes.statusText}`);
       if (!withdrawalsRes.ok) throw new Error(`Failed to fetch withdrawal requests: ${withdrawalsRes.statusText}`);
       if (!bonusesRes.ok) throw new Error(`Failed to fetch bonuses: ${bonusesRes.statusText}`);
       if (!investmentsRes.ok) throw new Error(`Failed to fetch investments: ${investmentsRes.statusText}`);
+      if (!loanOrdersRes.ok) throw new Error(`Failed to fetch loan orders: ${loanOrdersRes.statusText}`);
 
       const depositsData = await depositsRes.json();
       const withdrawalsData = await withdrawalsRes.json();
       const bonusesData = await bonusesRes.json();
       const investmentsData = await investmentsRes.json();
+      const loanOrdersData = await loanOrdersRes.json();
 
       // Map data to a common transaction format
       const mappedDeposits = depositsData.map(d => ({
@@ -120,7 +124,6 @@ const Transactions = () => {
         details: `Reason: ${b.reason || 'N/A'}`,
       }));
 
-      // Map investments as transactions
       const mappedInvestments = investmentsData.map(inv => ({
         id: `inv-${inv.orderId || inv.id}`,
         type: 'investment',
@@ -131,46 +134,40 @@ const Transactions = () => {
         details: `Asset: ${inv.assetId || 'N/A'}${inv.editorDiscountApplied ? ' (Editor Discount Applied)' : ''}`,
       }));
 
+      // Map loan orders as transactions
+      const mappedLoanOrders = loanOrdersData.map(lo => ({
+        id: `loan-${lo.id}`,
+        type: 'loan',
+        amount: lo.quota || lo.applicationFee || 0,
+        date: lo.createdAt || lo.date || lo.orderDate,
+        status: lo.status || 'completed',
+        userId: lo.userId,
+        details: `Loan Type: ${lo.loanTypeName || lo.loanTypeId || 'N/A'}${lo.chosenCrypto ? ` | Paid with: ${lo.chosenCrypto}` : ''}`,
+      }));
+
       // Combine all transactions
       const allTransactions = [
         ...mappedDeposits,
         ...mappedWithdrawals,
         ...mappedBonuses,
         ...mappedInvestments,
+        ...mappedLoanOrders,
       ];
 
-      // Sort by date, most recent first
+      // Sort by date, oldest at the bottom (newest first)
       const sortedTransactions = allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      // Calculate running balance after each transaction
-      let runningBalance = userData.balance || 0;
-      const sortedWithBalance = sortedTransactions.map(tx => {
-        let balanceAfter = runningBalance;
-        if (tx.status === 'completed' || tx.status === 'confirmed') {
-          if (tx.type === 'deposit' || tx.type === 'bonus_added') {
-            runningBalance -= tx.amount;
-          } else if (tx.type === 'withdrawal') {
-            runningBalance += tx.amount;
-          } else if (tx.type === 'investment') {
-            runningBalance += 0; // Adjust if you want to reflect investment effect on balance
-          }
-        }
-        return { ...tx, balanceAfter };
-      });
-
-      // Client-side pagination
-      const totalItems = sortedWithBalance.length;
+      // Pagination
+      const totalItems = sortedTransactions.length;
       setTotalPages(Math.ceil(totalItems / ITEMS_PER_PAGE));
-
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE;
-      const paginatedTransactions = sortedWithBalance.slice(startIndex, endIndex);
+      const paginatedTransactions = sortedTransactions.slice(startIndex, endIndex);
 
       setTransactions(paginatedTransactions);
 
     } catch (err) {
       setError(err.message || 'An unknown error occurred while fetching transactions.');
-      console.error('Error fetching transactions:', err);
       setTransactions([]);
       setTotalPages(1);
     } finally {
@@ -180,7 +177,7 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions]); // Fetch transactions when the function changes (due to currentPage change)
+  }, [fetchTransactions]);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);

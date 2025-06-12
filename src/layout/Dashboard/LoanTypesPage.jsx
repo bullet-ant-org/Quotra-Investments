@@ -157,10 +157,33 @@ const LoanTypesPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loanOrder),
       });
-      window.location.href = '/main'; // Redirect to main.jsx page
+      // Close all modals and reset modal states
+      setShowPaymentModal(false);
+      setShowModal(false);
+      setSelectedLoan(null);
+      setCheckoutStep('form');
+      setHomeAddress('');
+      setCity('');
+      setStateVal('');
+      setCountry('');
+      setDriversLicense(null);
+      setIdCard(null);
+      setFaceImage(null);
+      setChosenCrypto('');
     } catch (err) {
       // Optionally handle error (e.g., show a toast)
-      window.location.href = '/main'; // Still redirect to main.jsx
+      setShowPaymentModal(false);
+      setShowModal(false);
+      setSelectedLoan(null);
+      setCheckoutStep('form');
+      setHomeAddress('');
+      setCity('');
+      setStateVal('');
+      setCountry('');
+      setDriversLicense(null);
+      setIdCard(null);
+      setFaceImage(null);
+      setChosenCrypto('');
     }
   };
 

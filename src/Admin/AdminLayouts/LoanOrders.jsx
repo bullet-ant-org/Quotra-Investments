@@ -51,8 +51,8 @@ const LoanOrders = () => {
       if (!loanOrdersRes.ok) throw new Error('Failed to fetch loan orders');
       const loanOrdersData = await loanOrdersRes.json();
 
-      // Sort by date, most recent first
-      const sorted = loanOrdersData.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+      // Sort by createdAt, newest first (oldest at the bottom)
+      const sorted = loanOrdersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setLoanOrders(sorted);
     } catch (err) {
       setError(err.message || 'An unknown error occurred while fetching loan orders.');
@@ -167,24 +167,24 @@ const LoanOrders = () => {
       ) : loanOrders.length === 0 ? (
         <Row><Col><Alert variant="info">No loan applications found.</Alert></Col></Row>
       ) : (
-        <Row xs={1} md={1} lg={2} xl={2} className="g-4"> {/* Adjusted for potentially more info per card */}
+        <Row xs={1} md={1} lg={2} xl={2} className="g-4">
           {loanOrders.map((loan) => (
             <Col key={loan.id}>
               <Card className="shadow-sm border-0 h-100" style={{ borderRadius: '1rem', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
                 <Card.Body className="d-flex flex-column p-4">
                   <div className="mb-3 d-flex justify-content-between align-items-center">
-                    <h5 className="fw-bold text-primary mb-0">{loan.loanName}</h5>
+                    <h5 className="fw-bold text-primary mb-0">{loan.loanTypeName || loan.loanName}</h5>
                     <Badge bg={statusColor(loan.status)} className="px-3 py-2 text-uppercase" style={{ fontSize: '0.8rem', borderRadius: '0.5rem' }}>
                       {loan.status}
                     </Badge>
                   </div>
                   <p className="mb-1"><strong className="text-muted">User:</strong> {usersMap[loan.userId]?.username || loan.userId}</p>
-                  <p className="mb-1"><strong className="text-muted">Email:</strong> {usersMap[loan.userId]?.email || 'N/A'}</p>
-                  <p className="mb-1"><strong className="text-muted">Amount:</strong> <span className="fw-bold">{formatCurrency(loan.requestedAmount)}</span></p>
-                  <p className="mb-1"><strong className="text-muted">Term:</strong> {loan.loanTerm}</p>
-                  <p className="mb-1"><strong className="text-muted">Interest:</strong> {loan.interestRate}%</p>
-                  <p className="mb-3"><strong className="text-muted">Requested:</strong> {loan.requestDate ? formatDateFns(new Date(loan.requestDate), 'MMM dd, yyyy, p') : 'N/A'}</p>
-                  
+                  <p className="mb-1"><strong className="text-muted">Email:</strong> {usersMap[loan.userId]?.email || loan.userEmail || 'N/A'}</p>
+                  <p className="mb-1"><strong className="text-muted">Amount:</strong> <span className="fw-bold">{formatCurrency(loan.amount || loan.quota)}</span></p>
+                  <p className="mb-1"><strong className="text-muted">Term:</strong> {loan.term}</p>
+                  <p className="mb-1"><strong className="text-muted">Interest:</strong> {loan.interest}%</p>
+                  <p className="mb-1"><strong className="text-muted">Application Fee:</strong> <span className="fw-bold">{formatCurrency(loan.applicationFee)}</span></p>
+                  <p className="mb-3"><strong className="text-muted">Applied:</strong> {loan.createdAt ? formatDateFns(new Date(loan.createdAt), 'MMM dd, yyyy, p') : 'N/A'}</p>
                   <div className="mt-auto d-flex flex-wrap gap-2">
                     {loan.status === 'pending' && (
                       <>

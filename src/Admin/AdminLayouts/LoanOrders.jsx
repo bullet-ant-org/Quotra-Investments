@@ -67,7 +67,7 @@ const LoanOrders = () => {
   }, [fetchLoanOrders]);
 
   const handleApproveLoan = async (loan) => {
-    if (!window.confirm(`Approve loan of ${formatCurrency(loan.requestedAmount)} for ${usersMap[loan.userId]?.username || loan.userId}? This will add funds to their balance.`)) return;
+    if (!window.confirm(`Approve loan of ${formatCurrency(loan.amount)} for ${usersMap[loan.userId]?.username || loan.userId}? This will add funds to their balance.`)) return;
     setProcessingId(loan.id);
     setError('');
     setSuccess('');
@@ -85,7 +85,7 @@ const LoanOrders = () => {
 
       // 2. Update user balance
       const currentBalance = parseFloat(userDetail?.balance || 0);
-      const newBalance = currentBalance + parseFloat(loan.requestedAmount);
+      const newBalance = currentBalance + parseFloat(loan.amount);
       const balRes = await fetch(`${API_BASE_URL}/users/${loan.userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -99,14 +99,12 @@ const LoanOrders = () => {
           recipient_email: userEmail,
           recipient_name: userDetail?.username || 'Client',
           transaction_type: 'Loan Approved',
-          transaction_amount: formatCurrency(parseFloat(loan.requestedAmount)),
+          transaction_amount: formatCurrency(parseFloat(loan.amount)),
           transaction_date: formatDateFns(new Date(), 'MMM dd, yyyy, p'),
           transaction_ref: `LOAN-${loan.id}`,
-          // You can add more loan-specific details if your template supports them
-          // e.g., loan_name: loan.loanName,
         });
       }
-      setSuccess(`Loan for ${userDetail?.username || loan.userId} approved. ${formatCurrency(loan.requestedAmount)} added to balance.`);
+      setSuccess(`Loan for ${userDetail?.username || loan.userId} approved. ${formatCurrency(loan.amount)} added to balance.`);
       fetchLoanOrders(); // Refresh list
     } catch (err) {
       setError(err.message || 'An error occurred while approving the loan.');
@@ -116,7 +114,7 @@ const LoanOrders = () => {
   };
 
   const handleRejectLoan = async (loan) => {
-    if (!window.confirm(`Reject loan of ${formatCurrency(loan.requestedAmount)} for ${usersMap[loan.userId]?.username || loan.userId}?`)) return;
+    if (!window.confirm(`Reject loan of ${formatCurrency(loan.amount)} for ${usersMap[loan.userId]?.username || loan.userId}?`)) return;
     setProcessingId(loan.id);
     setError('');
     setSuccess('');
@@ -136,12 +134,10 @@ const LoanOrders = () => {
         await sendTransactionEmail({
           recipient_email: userEmail,
           recipient_name: userDetail?.username || 'Client',
-          transaction_type: 'Loan Application Update', // Or 'Loan Rejected'
-          transaction_amount: formatCurrency(parseFloat(loan.requestedAmount)), // Amount applied for
+          transaction_type: 'Loan Application Update',
+          transaction_amount: formatCurrency(parseFloat(loan.amount)),
           transaction_date: formatDateFns(new Date(), 'MMM dd, yyyy, p'),
           transaction_ref: `LOAN-${loan.id}`,
-          // Add a custom message or reason if your template supports it
-          // e.g., custom_message: "We regret to inform you that your recent loan application has been rejected..."
         });
       }
       setSuccess(`Loan for ${userDetail?.username || loan.userId} rejected.`);

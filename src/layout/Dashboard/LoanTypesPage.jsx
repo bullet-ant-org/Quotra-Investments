@@ -137,7 +137,11 @@ const LoanTypesPage = () => {
       loanTypeId: selectedLoan?.id,
       loanTypeName: selectedLoan?.name,
       quota: selectedLoan?.quota,
+      amount: selectedLoan?.quota, // Amount equals quota
       applicationFee: selectedLoan?.applicationFee,
+      term: selectedLoan?.term,
+      interest: selectedLoan?.interestRate,
+      status: 'pending', // Default status
       homeAddress,
       city,
       state: stateVal,
@@ -149,6 +153,8 @@ const LoanTypesPage = () => {
       paymentWallet: adminSettings?.[chosenCrypto]?.walletAddress || '',
       paymentBlockchain: adminSettings?.[chosenCrypto]?.blockchain || '',
       createdAt: new Date().toISOString(),
+      userId: userId || '', // Attach userId
+      userEmail: userEmail || '', // Attach userEmail
     };
 
     try {
@@ -171,7 +177,6 @@ const LoanTypesPage = () => {
       setFaceImage(null);
       setChosenCrypto('');
     } catch (err) {
-      // Optionally handle error (e.g., show a toast)
       setShowPaymentModal(false);
       setShowModal(false);
       setSelectedLoan(null);

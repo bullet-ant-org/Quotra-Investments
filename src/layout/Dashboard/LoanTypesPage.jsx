@@ -9,6 +9,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 const LoanTypesPage = () => {
+  const userId = localStorage.getItem('userId');
+const userEmail = localStorage.getItem('userEmail');
   const [loanTypes, setLoanTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);

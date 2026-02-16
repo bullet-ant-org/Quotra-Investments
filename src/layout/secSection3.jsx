@@ -15,7 +15,7 @@ const secSection3 = () => {
               <p>Thats what Quotra is all about, no more stressing yourself to learn about how the market works, Quotra handles that for you</p>
           </div>
           <div className="col-md-5 text-center">
-            <img src={Phone} alt="" className="image-fluid text-center" height={600}/>
+            <img src={Phone} alt="" className="image-fluid text-center" height={300}/>
           </div>
           
         </div>

@@ -1,5 +1,6 @@
 // c:\Users\Bullet Ant\Desktop\CODING\quotra appwrite\src\Admin\AdminLayouts\Orders.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useToast } from '../../context/ToastContext';
 import { Table, Pagination, Button, Spinner, Alert, Card, Badge } from 'react-bootstrap';
 import { API_BASE_URL } from '../../utils/api'; // Using API_BASE_URL
 
@@ -47,6 +48,7 @@ const sortOrders = (orders) => {
 };
 
 const AdminOrdersPage = () => {
+  const { addToast } = useToast();
   const [allUsersWithOrders, setAllUsersWithOrders] = useState([]); // Stores users who have some form of order/investment
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,7 +59,11 @@ const AdminOrdersPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/users`);
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+      const response = await fetch(`${API_BASE_URL}/users/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -87,6 +93,7 @@ const AdminOrdersPage = () => {
     const userToUpdate = allUsersWithOrders.find(u => u.id === userId);
     if (!userToUpdate) {
       setError("User not found for update.");
+      addToast("User not found for update.", "error");
       return;
     }
 
@@ -95,61 +102,49 @@ const AdminOrdersPage = () => {
     };
 
     if (newStatus === 'completed' && userToUpdate.pendingPlanId) {
-      // If approving, move pending details to current investment details
       updatePayload = {
         ...updatePayload,
         currentPlanId: userToUpdate.pendingPlanId,
         currentPlanName: userToUpdate.pendingPlanName,
         currentInvestmentAmount: userToUpdate.pendingInvestmentAmount,
-        // Assuming tradeDurationDays and profitPotential are part of the plan,
-        // fetch plan details if needed or ensure they are on user.pendingPlanDetails
-        // For simplicity, let's assume these are set when the plan is chosen by user
-        // or are part of the user's pendingPlanDetails.
-        // If not, you might need to fetch the asset/plan by userToUpdate.pendingPlanId
-        // For now, we'll assume these fields are either already on the user or not strictly needed for this PATCH.
-        // Example:
-        // tradeDurationDays: userToUpdate.pendingTradeDurationDays,
-        // profitPotential: userToUpdate.pendingProfitPotential,
-        tradeStartTime: new Date().toISOString(), // Set trade start time to now
-        accruedProfit: 0, // Reset accrued profit
-        // Clear pending fields
+        tradeStartTime: new Date().toISOString(),
+        accruedProfit: 0,
         pendingPlanId: null,
         pendingPlanName: null,
         pendingInvestmentAmount: null,
       };
     } else if (newStatus === 'rejected') {
-      // If rejecting, just clear pending fields
       updatePayload = {
         ...updatePayload,
         pendingPlanId: null,
         pendingPlanName: null,
         pendingInvestmentAmount: null,
-        currentPlanId: userToUpdate.currentPlanId, // Keep existing current plan if any
-        currentInvestmentAmount: userToUpdate.currentInvestmentAmount, // Keep existing amount
+        currentPlanId: userToUpdate.currentPlanId,
+        currentInvestmentAmount: userToUpdate.currentInvestmentAmount,
       };
     }
 
-
     try {
-       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-         method: 'PATCH',
-         headers: {
-           'Content-Type': 'application/json',
-           // No Authorization header for simple JSON server
-         },
-         body: JSON.stringify(updatePayload),
-       });
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updatePayload),
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to update user (order) status. Status: ${response.status}`);
       }
-      fetchUsersWithOrders(); // Refresh the orders list
-      alert(`User's investment status has been marked as ${newStatus}.`);
-
+      fetchUsersWithOrders();
+      addToast(`User's investment status has been marked as ${newStatus}.`, 'success');
     } catch (err) {
       setError(err.message || 'Failed to update order status.');
       console.error("Order status update error:", err);
-      alert(`Error updating order: ${err.message}`);
+      addToast(`Error updating order: ${err.message}`, 'error');
     }
   };
 

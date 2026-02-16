@@ -1,21 +1,55 @@
 import React from 'react'
-import Nonee from '../assets/nonee.jpg'
+import Bag from '../assets/bag.svg'
+import Hand from '../assets/hand.svg'
 import { Link } from 'react-router-dom';
+import Chart from '../assets/chart.svg'
+
 
 const SecSection = () => {
+
+
+
   return (
-    <section id='intro'>
-      <div className="container-fluid balablu pt-5 py-lg-5">
-        <div className="row justify-content-center">
-          <div className="col-md-5 text-center text-md-start">
-            <h1>
-              <div className="display-6 text-primary">A TRUELY GLOBAL HEDGEFUND</div>
-              <p className='text-dark'>What started as a little business of using people's money to buy properties and giving business owners to sell in the streets of london, in the year 1945, a month after the victory in europe, after the world war. <br /> Continued growing, little by little. <br /> And we are pleased to tell you, our beloved Visitor that on day 9th, September 2003, we became truely worldwide <br />And Also are we pleased to let you know that on 4th October 2012, we migrated to the stock market, which is where we now make our stand </p>
-              <Link to="/about" className="btn-sm btn-primary">Learn More</Link>
-            </h1>
+    <section id='pricing'>
+      <div className="container-fluid">
+     
+
+        <div className="row hello-icons">
+          <div className="col-12 col-md-3 mt-5 mt-lg-0">
+            <div className="text-center">
+            <img src={Bag} alt="Bag Icon" className='img-fluid' height={200} width={200}/>
+            </div>
+            <div className="mt-5">
+            <h6 className='display-6'>Mutual funds</h6>
+            </div>
+            <p>Put your money to work with our Mutual Funds and start earning competitive returns.</p>
+            <div className="mt-5">
+            <Link>Learn More </Link>
+            </div>
           </div>
-          <div className="col-md-5 text-center">
-            <img src={Nonee} alt="" className="image-fluid text-center" height={420}/>
+          <div className="col-12 col-md-3 mt-5 mt-lg-0">
+            <div className="text-center">
+            <img src={Hand} alt="hand Icon" className='img-fluid' height={200} width={200}/>
+            </div>
+            <div className="mt-5">
+            <h6 className='display-6'>Trusts</h6>
+            </div>
+            <p>Put your money to work with our Mutual Funds and start earning competitive returns.</p>
+            <div className="mt-5">
+            <Link>Learn More </Link>
+            </div>
+          </div>
+          <div className="col-12 col-md-3 mt-5 mt-lg-0">
+            <div className="text-center">
+            <img src={Chart} alt="Chart Icon" className='img-fluid' height={200} width={200}/>
+            </div>
+            <div className="mt-5">
+            <h6 className='display-6'>Securities</h6>
+            </div>
+            <p>Put your money to work with our Mutual Funds and start earning competitive returns.</p>
+            <div className="mt-5">
+            <Link>Learn More </Link>
+            </div>
           </div>
         </div>
       </div>

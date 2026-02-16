@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Row, Col, Card, Spinner, Alert, Pagination, Accordion } from 'react-bootstrap';
+import { Container, Row, Col, Card, Spinner, Alert, Pagination, Badge, Accordion } from 'react-bootstrap';
 import { format } from 'date-fns';
-import { API_BASE_URL } from '../../utils/api';
+import { API_BASE_URL, handle401 } from '../../utils/api';
 
 // Helper to format currency
 const formatCurrency = (amount) => {
@@ -53,33 +53,42 @@ const Transactions = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [userBalance, setUserBalance] = useState(0);
   const userId = localStorage.getItem('userId');
+  const token = localStorage.getItem('token');
 
   const fetchTransactions = useCallback(async () => {
-    if (!userId) {
-      setError("User ID not found. Cannot fetch transactions.");
+    if (!userId || !token) {
+      setError("User not authenticated. Cannot fetch transactions.");
       setIsLoading(false);
-      setTransactions([]);
-      setTotalPages(1);
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    try {
-      // Fetch user balance
-      const userRes = await fetch(`${API_BASE_URL}/users/${userId}`);
-      if (!userRes.ok) throw new Error(`Failed to fetch user: ${userRes.statusText}`);
-      const userData = await userRes.json();
-      setUserBalance(userData.balance || 0);
 
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    };
+
+    try {
       // Fetch all transaction endpoints including loanOrders
       const [depositsRes, withdrawalsRes, bonusesRes, investmentsRes, loanOrdersRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/depositRequests?userId=${userId}`),
-        fetch(`${API_BASE_URL}/withdrawalRequests?userId=${userId}`),
-        fetch(`${API_BASE_URL}/bonuses?userId=${userId}`),
-        fetch(`${API_BASE_URL}/assetOrders?userId=${userId}`),
-        fetch(`${API_BASE_URL}/loanOrders?userId=${userId}`),
+        fetch(`${API_BASE_URL}/depositRequests`, { headers }),
+        fetch(`${API_BASE_URL}/withdrawalRequests`, { headers }),
+        fetch(`${API_BASE_URL}/bonuses`, { headers }),
+        fetch(`${API_BASE_URL}/assetOrders`, { headers }),
+        fetch(`${API_BASE_URL}/loanOrders`, { headers }),
       ]);
+
+
+      // Handle 401 Unauthorized for any endpoint (auto-logout and redirect)
+      if ([depositsRes, withdrawalsRes, bonusesRes, investmentsRes, loanOrdersRes].some(res => handle401(res))) {
+        setError('Your session has expired or you are not authorized. Please log in again.');
+        setTransactions([]);
+        setTotalPages(1);
+        setIsLoading(false);
+        return;
+      }
 
       if (!depositsRes.ok) throw new Error(`Failed to fetch deposit requests: ${depositsRes.statusText}`);
       if (!withdrawalsRes.ok) throw new Error(`Failed to fetch withdrawal requests: ${withdrawalsRes.statusText}`);
@@ -173,7 +182,7 @@ const Transactions = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [userId, currentPage]);
+  }, [userId, token, currentPage]);
 
   useEffect(() => {
     fetchTransactions();
@@ -199,67 +208,67 @@ const Transactions = () => {
     <Container fluid className="p-4">
       <Row>
         <Col>
-          <Card className="transactions-card">
-            <Card.Header as="h5">Transaction History</Card.Header>
-            {isLoading ? (
-              <Card.Body className="text-center">
+          <h4 className="mb-4 fw-bold text-primary">Transaction History</h4>
+          {isLoading ? (
+            <Row>
+              <Col className="text-center my-5">
                 <Spinner animation="border" />
                 <p className="mt-2">Loading transactions...</p>
-              </Card.Body>
-            ) : error ? (
-              <Card.Body>
-                <Alert variant="danger" className="m-0">{error}</Alert>
-              </Card.Body>
-            ) : transactions.length > 0 ? (
-              <>
-                <Accordion flush>
-                  {transactions.map((transaction) => (
-                    <Accordion.Item eventKey={transaction.id} key={transaction.id}>
-                      <Accordion.Header>
-                        <span className={`fw-bold text-capitalize me-auto text-${getTypeColor(transaction.type)}`}>
+              </Col>
+            </Row>
+          ) : error ? (
+            <Row>
+              <Col>
+                <Alert variant="danger">{error}</Alert>
+              </Col>
+            </Row>
+          ) : transactions.length > 0 ? (
+            <Accordion flush>
+              {transactions.map((transaction, index) => (
+                <Accordion.Item eventKey={String(index)} key={transaction.id} className="mb-2 shadow-sm">
+                  <Accordion.Header>
+                    <div className="d-flex justify-content-between align-items-center w-100">
+                      <span>
+                        <Badge bg={getTypeColor(transaction.type)} className="me-2 text-uppercase shadow-sm" style={{ letterSpacing: '0.08em', borderRadius: '1rem' }}>
                           {transaction.type.replace(/_/g, ' ')}
-                        </span>
-                        <span className={`transaction-status text-${getStatusColor(transaction.status)} text-uppercase fw-bold px-3`}>
-                          {transaction.status}
-                        </span>
-                      </Accordion.Header>
-                      <Accordion.Body>
-                        <Row>
-                          <Col sm={12} md={6} className="mb-2 mb-md-0">
-                            <small className="text-muted d-block">Date & Time</small>
-                            {transaction.date && !isNaN(new Date(transaction.date)) 
-  ? format(new Date(transaction.date), 'MMM dd, yyyy, p') 
-  : 'N/A'}
-                          </Col>
-                          <Col sm={6} md={3} className="mb-2 mb-md-0">
-                            <small className="text-muted d-block">Amount</small>
-                            {formatCurrency(transaction.amount)}
-                          </Col>
-                          <Col sm={6} md={3}>
-                            <small className="text-muted d-block">Balance After</small>
-                            {transaction.balanceAfter !== undefined ? formatCurrency(transaction.balanceAfter) : 'N/A'}
-                          </Col>
-                          {transaction.details && (
-                            <Col sm={12} className="mt-2 text-muted">
-                                <small>{transaction.details}</small>
-                            </Col>)}
-                        </Row>
-                      </Accordion.Body>
-                    </Accordion.Item>
-                  ))}
-                </Accordion>
-                {totalPages > 1 && (
-                  <Card.Footer className="d-flex justify-content-center">
-                    <Pagination>{renderPaginationItems()}</Pagination>
-                  </Card.Footer>
-                )}
-              </>
-            ) : (
-              <Card.Body>
-                <Alert variant="info" className="m-0">No transactions found.</Alert>
-              </Card.Body>
-            )}
-          </Card>
+                        </Badge>
+                        <strong>{formatCurrency(transaction.amount)}</strong>
+                      </span>
+                      <Badge bg={getStatusColor(transaction.status)} className="px-3 py-2 text-uppercase shadow-sm" style={{ letterSpacing: '0.08em', borderRadius: '1rem' }}>
+                        {transaction.status}
+                      </Badge>
+                    </div>
+                  </Accordion.Header>
+                  <Accordion.Body>
+                    <Row>
+                      <Col md={6} className="mb-2 mb-md-0">
+                        <p className="mb-1"><strong>Date & Time:</strong> {transaction.date && !isNaN(new Date(transaction.date)) ? format(new Date(transaction.date), 'MMM dd, yyyy, p') : 'N/A'}</p>
+                        <p className="mb-1"><strong>Balance After:</strong> {transaction.balanceAfter !== undefined ? formatCurrency(transaction.balanceAfter) : 'N/A'}</p>
+                      </Col>
+                      <Col md={6}>
+                        {transaction.details && (
+                          <p className="mb-1 text-muted"><strong>Details:</strong> {transaction.details}</p>
+                        )}
+                      </Col>
+                    </Row>
+                  </Accordion.Body>
+                </Accordion.Item>
+              ))}
+            </Accordion>
+          ) : (
+            <Row>
+              <Col>
+                <Alert variant="info">No transactions found.</Alert>
+              </Col>
+            </Row>
+          )}
+          {totalPages > 1 && (
+            <Row className="justify-content-center mt-3">
+              <Col xs="auto">
+                <Pagination>{renderPaginationItems()}</Pagination>
+              </Col>
+            </Row>
+          )}
         </Col>
       </Row>
     </Container>

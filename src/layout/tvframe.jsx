@@ -13,7 +13,7 @@ const TvFrame = () => {
     script.async = true;
     script.className = 'tradingview-widget-script'; // Add a class to identify the script
     script.innerHTML = JSON.stringify({
-      colorTheme: "dark",
+      colorTheme: "light",
       dateRange: "12M",
       showChart: true,
       locale: "en",

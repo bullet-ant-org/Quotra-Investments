@@ -17,7 +17,11 @@ const NavbarComponent = () => {
             <img src={black} alt="Quotra Logo" height={30}/>
           </Navbar.Brand>
           {/* Toggler button for Offcanvas */}
-          <Navbar.Toggle aria-controls="offcanvasNavbar" />
+          <Navbar.Toggle aria-controls="offcanvasNavbar" className="border-0 text-white">
+            <span className="material-symbols-outlined text-black icon">
+              menu_open
+            </span>
+          </Navbar.Toggle>
           <Navbar.Offcanvas
             id="offcanvasNavbar"
             aria-labelledby="offcanvasNavbarLabel"
@@ -69,12 +73,11 @@ const NavbarComponent = () => {
             <img src={Nonee1} alt="" className="image-fluid text-center" height={200}/>
           </div>
           <div className="col-md-5 text-center text-md-start">
-            <p>
-              
+                        
               <p className='text-light pt-2'>Your Future, Our Responsibility</p>
               <p className='text-light'>Join Us today for a Better and secured Financial future</p>
               
-            </p>
+
           </div>
         </div>
                 {/* You can add a placeholder text if needed, e.g., <p className="text-white">Your new section here</p> */}

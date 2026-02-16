@@ -60,7 +60,7 @@ const Marquee = () => {
 
         return (
           <div key={coin.id} className={`item item${index + 1} text-dark`}>
-            <p>
+            <p className='smally'>
               {coin.name}
               <span className={`ms-2 ${isUp ? 'text-success' : 'text-danger'}`}>{percentageString}</span>
               {/* Optional: Display price: {formatPrice(coin.current_price)} */}

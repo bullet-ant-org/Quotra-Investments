@@ -36,8 +36,14 @@ const LoanOrders = () => {
     setError(null);
     setSuccess('');
     try {
-      // Fetch all users for mapping userId to username/email
-      const usersRes = await fetch(`${API_BASE_URL}/users`);
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+
+      // Fetch all users for mapping userId to username/email (admin-only endpoint)
+      const usersRes = await fetch(`${API_BASE_URL}/users/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!usersRes.ok) throw new Error('Failed to fetch users');
       const users = await usersRes.json();
       const usersMapTemp = {};
@@ -46,8 +52,10 @@ const LoanOrders = () => {
       });
       setUsersMap(usersMapTemp);
 
-      // Fetch all loan orders
-      const loanOrdersRes = await fetch(`${API_BASE_URL}/loanOrders`);
+      // Fetch all loan orders (admin-only endpoint)
+      const loanOrdersRes = await fetch(`${API_BASE_URL}/loanOrders/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!loanOrdersRes.ok) throw new Error('Failed to fetch loan orders');
       const loanOrdersData = await loanOrdersRes.json();
 
@@ -60,7 +68,7 @@ const LoanOrders = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [setLoanOrders, setError, setIsLoading, setUsersMap]);
 
   useEffect(() => {
     fetchLoanOrders();
@@ -75,20 +83,23 @@ const LoanOrders = () => {
     const userEmail = userDetail?.email;
 
     try {
-      // 1. Update loan order status
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+
+      // 1. Update loan order status (admin-only)
       const loanRes = await fetch(`${API_BASE_URL}/loanOrders/${loan.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: 'approved', approvalDate: new Date().toISOString() }),
       });
       if (!loanRes.ok) throw new Error('Failed to approve loan order.');
 
-      // 2. Update user balance
+      // 2. Update user balance (admin-only)
       const currentBalance = parseFloat(userDetail?.balance || 0);
       const newBalance = currentBalance + parseFloat(loan.amount);
       const balRes = await fetch(`${API_BASE_URL}/users/${loan.userId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ balance: newBalance }),
       });
       if (!balRes.ok) throw new Error('Failed to update user balance.');
@@ -122,9 +133,11 @@ const LoanOrders = () => {
     const userEmail = userDetail?.email;
 
     try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
       const res = await fetch(`${API_BASE_URL}/loanOrders/${loan.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: 'rejected', rejectionDate: new Date().toISOString() }),
       });
       if (!res.ok) throw new Error('Failed to reject loan order.');

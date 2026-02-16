@@ -7,6 +7,7 @@
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
+
 }
 a {
   text-emphasis: none;
@@ -86,7 +87,6 @@ html, body {
   /* Add animation for text fade-in/out */
   animation: fadeIn 1s ease-in-out;
   z-index: 2; /* Ensure text is above background */
-  background-color: rgba(0, 0, 0, 0.3); /* Optional subtle dark overlay for text readability */
   padding: 20px;
   border-radius: 8px;
 }
@@ -205,7 +205,7 @@ i.bxs-down-arrow {
 }
 .mainoo p {
   color: Black;
-  font-weight: bold;
+  /* font-weight: bold; */
   letter-spacing: .25rem;
 }
 .balablu {
@@ -257,6 +257,7 @@ transition: all 0.3s ease;
 @media (min-width: 768px) {
 .price-tabs .nav-link {
   padding: 12px 40px;
+  color: #002cf1;
 }
 }
 
@@ -1510,6 +1511,14 @@ margin-bottom: 12px;
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
+.service-wrapper .big-icon2 {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  opacity: 0.5;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
 
 .service-wrapper:hover {
   -webkit-box-shadow: 0 10px 25px rgba(47, 60, 78, 0.15) !important;
@@ -1528,6 +1537,11 @@ margin-bottom: 12px;
 .service-wrapper:hover .big-icon {
   z-index: -1;
   opacity: 0.1;
+  font-size: 160px;
+}
+.service-wrapper:hover .big-icon2 {
+  z-index: -1;
+  opacity: 0.5;
   font-size: 160px;
 }
 
@@ -1551,7 +1565,9 @@ margin-bottom: 12px;
 
 /* Class for the main content area */
 .content-wrapper { /* Add some general padding */
-  padding-top: 70px;
+  padding-top: 53px;
+  background-color: white !important;
+  min-height: 100vh;
 }
 
 /* Apply left padding ONLY on large screens (lg breakpoint and up) */
@@ -2085,14 +2101,15 @@ text-decoration:line-through;;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 120px;
   word-wrap: break-word;
   background-color: #fff;
   background-clip: border-box;
-  border: 0px solid rgba(0, 0, 0, 0);
-  border-radius: .25rem;
+  border-radius: 0;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 6px 0 rgb(218 218 253 / 65%), 0 2px 6px 0 rgb(206 206 238 / 54%);
 }
+
 .bg-gradient-scooter {
   background: #17ead9;
   background: -webkit-linear-gradient( 
@@ -2208,7 +2225,32 @@ text-decoration:line-through;;
   color: #002cf1 !important; /* Bootstrap primary color */
   font-size: 1.1rem; /* Adjusted title size, feel free to change */
 }
+.totobutton {
+  background-color: white;
+  border: none;
+  color: black;
+  box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.177);
+  transition: .5s all ease;
+}
+.totobutton:hover {
+  background-color: #002cf1;
+  color: white;
 
+}
+.totoform {
+  background-color: white;
+  border: none;
+  padding: 15px 10px;
+  color: black;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.199);
+  transition: .5s all ease;
+}
+.totoform:hover {
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.258);
+}
+.transactions-card {
+  border: none;
+}
 /* Offcanvas Nav Links and Dropdown Toggle ("Account") */
 .offcanvas-custom-body .offcanvas-nav-link {
   color: #002cf1 !important;
@@ -2499,10 +2541,10 @@ text-decoration:line-through;;
 }
 /* Ensure icons in NavLink have consistent color with text */
 .nav-link .fas, .nav-link .far {
-    color: inherit; /* Or a specific color if needed */
+    color: #002cf1;
 }
 .active-dashboard-link .fas, .active-dashboard-link .far {
-    color: var(--bs-primary);
+    color: #002cf1;
 }
 
 
@@ -2511,6 +2553,7 @@ text-decoration:line-through;;
 
 /* Add padding to links inside the deposit dropdown for better appearance */
 #deposit-links-collapse .nav-link {
+  color: #002cf1;
   padding-top: 0.5rem; /* Adjust the value as needed */
   padding-bottom: 0.5rem; /* Adjust the value as needed */
 }
@@ -3155,4 +3198,88 @@ ul li {
   margin-top: auto; /* This is the key: pushes the text to the bottom of the flex container *//* Adds some space between the logo/spinner area and the text. Adjust as needed. */
   font-size: 1.1rem; /* Example: Adjust font size */
   color: #333;       /* Example: Adjust text color */
+}
+
+
+
+.button-green {
+  background-color: #15ca20;
+  border: none;
+  transition: all .5s ease;
+}
+.button-green:hover {
+  background-color: transparent;
+  border: none;
+  color: black;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+}
+.button-blue {
+  background-color: #002cf1;
+  border: none;
+  transition: all .5s ease;
+}
+.button-blue:hover{
+  background-color: transparent;
+  border: 2px solid #002cf1;
+  color: #002cf1;
+}
+.home-cards {
+  border: none !important;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 0rem;
+
+}
+
+.my-shadow {
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+
+}
+.text-blue {
+  color: #002cf1 !important;
+}
+.text-sm {
+  font-weight: lighter !important;
+}
+.icon {
+  font-size: 2rem;
+}
+.smally {
+  font-size: .8rem;
+}
+.hello-icons span {
+  font-size: 4rem;
+  font-weight: 600;
+  color: rgb(50, 50, 50);
+}
+.balablu p {
+  font-weight: 200;
+}
+.hello-icons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly; /* Centers the icons in the container */
+}
+.hello-icons h6 {
+  color: #5e5e5e;
+}
+.hello-icons .col-12 {
+  background-color: #fff6f7;
+  min-height: 450px;
+  padding: 30px;
+
+  border-radius: 10px; /* Rounds the corners */
+  color: #7a808d;
+
+}
+.hello-icons .mt-5 a {
+  color: #ef0000 !important; /* Ensures links in the mt-5 section are blue */
+  text-decoration: none; /* Removes underline from links */
+}
+.shadow-custom {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.223);
+  border: none !important;
+}
+.text-dark-100 {
+  color: #212529 !important;
 }

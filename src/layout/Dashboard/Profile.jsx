@@ -14,7 +14,7 @@ import {
   Dropdown,
   ButtonGroup, // Added for tab buttons
 } from 'react-bootstrap';
-import { API_BASE_URL, CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../utils/api'; // Import Cloudinary constants
+import { API_BASE_URL, CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../utils/api'; // Import API_BASE_URL
 import { PersonCircle } from 'react-bootstrap-icons';
 import './Profile.css';
 
@@ -52,78 +52,64 @@ const Profile = () => {
     const fetchProfileData = async () => {
       setIsLoading(true);
       setError(null);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('userId');
+        navigate('/login');
+        setIsLoading(false);
+        return;
+      }
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const userId = localStorage.getItem('userId'); // Get userId
       try {
-        const userId = localStorage.getItem('userId');
-        const storedUserString = localStorage.getItem('loggedInUser');
-
-        let userToFetchId = userId;
-        if (!userToFetchId && storedUserString) {
-          const storedUser = JSON.parse(storedUserString);
-          userToFetchId = storedUser.id;
-        }
-
-        if (!userToFetchId) {
-          navigate('/login');
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await fetch(`${API_BASE_URL}/users/${userToFetchId}`);
+        // Fetch profile from backend
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, { headers });
         if (!response.ok) {
-          if (response.status === 401 || response.status === 404) navigate('/login');
+          if (response.status === 401 || response.status === 404) { // Handle auth errors
+            setError('User not found. Please log in again.');
+            localStorage.removeItem('token');
+            localStorage.removeItem('loggedInUser');
+            localStorage.removeItem('userId');
+            navigate('/login');
+          }
           throw new Error('Failed to load user data.');
         }
         const data = await response.json();
-        // Initialize updatedProfileData with values from fetched 'data'.
-        // For fields like 'fullName', fall back to the current 'profileData' state value
-        // if not available in 'data'.
-        // Also, initialize 'calculated' bonus fields from current state;
-        // they will be updated by the subsequent bonus fetch or its fallback.
         let updatedProfileData = {
-          id: data.id,
+          id: data._id || data.id,
           username: data.username || '',
           email: data.email || '',
           phone: data.phone || '',
-          fullName: data.fullName || profileData.fullName, // Use fetched or fallback to current state's fullName
+          fullName: data.fullName || 'N/A',
           profileImageUrl: data.profileImageUrl || data.profilePictureUrl || '',
           balance: data.balance || 0,
-          bonus: data.bonus || 0, // This is from the user object (e.g., current spendable bonus)
-          allTimeProfits: data.Profit || 0, // Use AccuredProfit from backend
-          totalInvestmentsAllTime: data.totalInvestmentsAllTime || 0, // Fetch or keep placeholder
-          // Summary counts from the user object
-          totalBonusesCount: data.totalBonusesCount || 0, 
+          bonus: data.bonus || 0,
+          allTimeProfits: data.Profit || 0,
+          totalInvestmentsAllTime: data.totalInvestmentsAllTime || 0,
+          totalBonusesCount: data.totalBonusesCount || 0,
           depositHistoryCount: data.depositHistoryCount || 0,
           withdrawalHistoryCount: data.withdrawalHistoryCount || 0,
           investmentHistoryCount: data.investmentHistoryCount || 0,
-          // Initialize calculated fields from current state
           calculatedTotalBonusAmount: profileData.calculatedTotalBonusAmount,
           calculatedTotalBonusesCount: profileData.calculatedTotalBonusesCount,
         };
-
-        // Now fetch bonus history
-        const bonusResponse = await fetch(`${API_BASE_URL}/bonuses?userId=${userToFetchId}`);
-        if (bonusResponse.ok) {
-          const bonuses = await bonusResponse.json();
-          const totalBonusAmount = bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
-          updatedProfileData = {
-            ...updatedProfileData,
-            calculatedTotalBonusAmount: totalBonusAmount,
-            calculatedTotalBonusesCount: bonuses.length,
-          };
-        } else {
-          console.warn("Could not fetch bonus history for user.");
-          // Keep existing/placeholder values if bonus fetch fails
-          // Fallback for calculated bonus fields: use summary fields from the main 'data' object.
-          updatedProfileData = {
-            ...updatedProfileData,
-            calculatedTotalBonusAmount: data.bonus || 0, // Fallback to summary bonus amount from user data
-            calculatedTotalBonusesCount: data.totalBonusesCount || 0, // Fallback to summary bonus count from user data
-          };
-        }
+        // Fetch bonuses from /api/bonuses (if needed)
+        // const bonusResponse = await fetch(`/api/bonuses?userId=${updatedProfileData.id}`, { headers });
+        // if (bonusResponse.ok) {
+        //   const bonuses = await bonusResponse.json();
+        //   const totalBonusAmount = bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
+        //   updatedProfileData = {
+        //     ...updatedProfileData,
+        //     calculatedTotalBonusAmount: totalBonusAmount,
+        //     calculatedTotalBonusesCount: bonuses.length,
+        //   };
+        // }
         setProfileData(updatedProfileData);
       } catch (err) {
         setError(err.message || 'Failed to load user data.');
-        console.error("Error fetching profile data:", err);
+        console.error('Error fetching profile data:', err);
       } finally {
         setIsLoading(false);
       }
@@ -137,7 +123,7 @@ const Profile = () => {
       setIsUploading(true);
       setError(null);
       setSuccess(null);
-
+      const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
@@ -147,16 +133,19 @@ const Profile = () => {
         // 1. Upload to Cloudinary
         const cloudinaryResponse = await fetch(cloudinaryUrl, { method: 'POST', body: formData });
         if (!cloudinaryResponse.ok) {
-          const errData = await cloudinaryResponse.json().catch(() => ({ error: { message: "Unknown Cloudinary error" } }));
+          const errData = await cloudinaryResponse.json().catch(() => ({ error: { message: 'Unknown Cloudinary error' } }));
           throw new Error(errData.error?.message || 'Failed to upload image to Cloudinary.');
         }
         const cloudinaryData = await cloudinaryResponse.json();
         const newProfileImageUrl = cloudinaryData.secure_url;
 
-        // 2. Update profileImageUrl in JSON server
-        const updateUserResponse = await fetch(`${API_BASE_URL}/users/${profileData.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+        // 2. Update profileImageUrl in backend (PUT /api/users/profile)
+        const updateUserResponse = await fetch(`${API_BASE_URL}/users/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
           body: JSON.stringify({ profileImageUrl: newProfileImageUrl }),
         });
         if (!updateUserResponse.ok) throw new Error('Failed to update profile picture URL in database.');
@@ -164,16 +153,16 @@ const Profile = () => {
         setProfileData((prev) => ({ ...prev, profileImageUrl: newProfileImageUrl }));
         // Update localStorage if other components rely on it
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-        if (loggedInUser && loggedInUser.id === profileData.id) {
-            localStorage.setItem('loggedInUser', JSON.stringify({...loggedInUser, profileImageUrl: newProfileImageUrl}));
+        if (loggedInUser && (loggedInUser._id === profileData.id || loggedInUser.id === profileData.id)) {
+          localStorage.setItem('loggedInUser', JSON.stringify({ ...loggedInUser, profileImageUrl: newProfileImageUrl }));
         }
         setSuccess('Profile picture updated successfully!');
       } catch (err) {
         setError(err.message || 'Failed to upload profile picture.');
-        console.error("Profile picture upload error:", err);
+        console.error('Profile picture upload error:', err);
       } finally {
         setIsUploading(false);
-        setShowImageModal(false); // Close modal after attempt
+        setShowImageModal(false);
       }
     }
   };
@@ -197,24 +186,13 @@ const Profile = () => {
     );
   }
 
-  const renderPillCard = (title, value, currency = 'USD') => (
-    <Card className="profile-pill-card shadow-sm mx-1 mb-2 mb-md-0">
-      <Card.Body className="p-2 text-center">
-        <small className="d-block text-muted profile-pill-title">{title}</small>
-        <div className="profile-pill-value fw-bold">
-          {typeof value === 'number' && !isNaN(value) ? `${value.toLocaleString()} ${currency}` : `${value} ${currency}`}
-        </div>
-      </Card.Body>
-    </Card>
-  );
-
   return (
     <Container className="mt-4">
       {/* Global Error/Success for operations like image upload */}
       {error && <Alert variant="danger" onClose={() => setError(null)} dismissible className="mb-3">{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible className="mb-3">{success}</Alert>}
 
-      {/* Top Section: Profile Image and Pills */}
+      {/* Top Section: Profile Image */}
       <Row className="mb-4 align-items-center profile-top-section">
         {/* Profile Image */}
         <Col xs={12} md={3} className="text-center text-md-start mb-3 mb-md-0">
@@ -247,21 +225,25 @@ const Profile = () => {
             </Dropdown.Menu>
           </Dropdown>
         </Col>
-
-        {/* Pills Section */}
-        <Col xs={12} md={9} className="profile-pills-container d-flex flex-column flex-md-row justify-content-md-end align-items-center">
-          {renderPillCard("Balance", profileData.balance)}
-          {renderPillCard("Bonus", profileData.bonus)}
-          {/* Removed All Time Profits pill */}
-        </Col>
       </Row>
 
-      {/* Tab Buttons */}
-      <ButtonGroup className="mb-4 d-flex profile-tab-buttons">
-        <Button variant={activeTab === 'profile' ? 'primary' : 'outline-primary'} onClick={() => setActiveTab('profile')}>Profile</Button>
-        <Button variant={activeTab === 'security' ? 'primary' : 'outline-primary'} onClick={() => setActiveTab('security')}>Security</Button>
-        {/* Removed Misc tab */}
-      </ButtonGroup>
+      {/* Tab Selectors - Custom Styled */}
+      <div className="profile-tab-selectors d-flex mb-4">
+        <div
+          className={`profile-tab-selector flex-grow-1 text-center py-2 px-3 ${activeTab === 'profile' ? 'active-tab shadow bg-white' : 'inactive-tab bg-white'}`}
+          style={activeTab === 'profile' ? {} : { borderBottom: '3px solid #000', cursor: 'pointer', background: '#f8f9fa' }}
+          onClick={() => setActiveTab('profile')}
+        >
+          Profile
+        </div>
+        <div
+          className={`profile-tab-selector flex-grow-1 text-center py-2 px-3 ${activeTab === 'security' ? 'active-tab shadow bg-white' : 'inactive-tab bg-white'}`}
+          style={activeTab === 'security' ? {} : { borderBottom: '3px solid #000', cursor: 'pointer', background: '#f8f9fa' }}
+          onClick={() => setActiveTab('security')}
+        >
+          Security
+        </div>
+      </div>
 
       {/* Content Area */}
       <div className="profile-content-area p-3 shadow-sm bg-light">
@@ -292,6 +274,14 @@ const Profile = () => {
               <Row className="profile-info-row">
                 <Col xs={5} md={4} className="profile-info-label"><strong>Total Investments All Time</strong></Col>
                 <Col xs={7} md={8} className="profile-info-value">{formatCurrency(profileData.totalInvestmentsAllTime)}</Col>
+              </Row>
+              <Row className="profile-info-row">
+                <Col xs={5} md={4} className="profile-info-label"><strong>Total Balance</strong></Col>
+                <Col xs={7} md={8} className="profile-info-value">{formatCurrency(profileData.balance)}</Col>
+              </Row>
+              <Row className="profile-info-row">
+                <Col xs={5} md={4} className="profile-info-label"><strong>All Bonus</strong></Col>
+                <Col xs={7} md={8} className="profile-info-value">{formatCurrency(profileData.bonus)}</Col>
               </Row>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Row, Col, Card, Spinner, Alert, Pagination, Accordion } from 'react-bootstrap';
+import { Container, Row, Col, Card, Spinner, Alert, Pagination, Button } from 'react-bootstrap';
 import { format } from 'date-fns';
 import { API_BASE_URL } from '../../utils/api';
 
@@ -51,14 +51,19 @@ const Transactions = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [userMap, setUserMap] = useState({});
+  const [openTransaction, setOpenTransaction] = useState(null);
 
   // Fetch all transactions and user info for admin
   const fetchTransactions = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Fetch all users (for mapping userId to username/email)
-      const usersRes = await fetch(`${API_BASE_URL}/users`);
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+      // Fetch all users (admin-only endpoint)
+      const usersRes = await fetch(`${API_BASE_URL}/users/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!usersRes.ok) throw new Error('Failed to fetch users');
       const users = await usersRes.json();
       const userMapTemp = {};
@@ -67,12 +72,12 @@ const Transactions = () => {
       });
       setUserMap(userMapTemp);
 
-      // Fetch all transaction types
+      // Fetch all transaction types (admin-only endpoints)
       const [depositsRes, withdrawalsRes, bonusesRes, investmentsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/depositRequests`),
-        fetch(`${API_BASE_URL}/withdrawalRequests`),
-        fetch(`${API_BASE_URL}/bonuses`),
-        fetch(`${API_BASE_URL}/assetOrders`),
+        fetch(`${API_BASE_URL}/depositRequests/all`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE_URL}/withdrawalRequests/all`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE_URL}/bonuses/all`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE_URL}/assetOrders/all`, { headers: { 'Authorization': `Bearer ${token}` } }),
       ]);
 
       if (!depositsRes.ok) throw new Error('Failed to fetch deposit requests');
@@ -178,7 +183,7 @@ const Transactions = () => {
       <Row>
         <Col>
           <Card className="transactions-card">
-            <Card.Header as="h5">All User Transactions</Card.Header>
+            <Card.Header as="h5" className='bg-white border-0'>All User Transactions</Card.Header>
             {isLoading ? (
               <Card.Body className="text-center">
                 <Spinner animation="border" />
@@ -190,54 +195,73 @@ const Transactions = () => {
               </Card.Body>
             ) : transactions.length > 0 ? (
               <>
-                <Accordion flush>
+                <div>
                   {transactions.map((transaction) => {
                     const user = userMap[transaction.userId] || {};
+                    const isOpen = openTransaction === transaction.id;
                     return (
-                      <Accordion.Item eventKey={transaction.id} key={transaction.id}>
-                        <Accordion.Header>
-                          <span className={`fw-bold text-capitalize me-auto text-${getTypeColor(transaction.type)}`}>
-                            {transaction.type.replace(/_/g, ' ')}
-                          </span>
-                          <span className={`transaction-status text-${getStatusColor(transaction.status)} text-uppercase fw-bold px-3`}>
-                            {transaction.status}
-                          </span>
-                        </Accordion.Header>
-                        <Accordion.Body>
-                          <Row>
-                            <Col sm={12} md={6} className="mb-2 mb-md-0">
-                              <small className="text-muted d-block">Date & Time</small>
-                              {transaction.date && !isNaN(new Date(transaction.date))
-                                ? format(new Date(transaction.date), 'MMM dd, yyyy, p')
-                                : 'N/A'}
-                            </Col>
-                            <Col sm={6} md={3} className="mb-2 mb-md-0">
-                              <small className="text-muted d-block">Amount</small>
-                              {formatCurrency(transaction.amount)}
-                            </Col>
-                            <Col sm={6} md={3}>
-                              <small className="text-muted d-block">User ID</small>
-                              {transaction.userId}
-                            </Col>
-                            <Col sm={12} className="mt-2">
-                              <div>
-                                <small className="text-muted">Username:</small> <span className="fw-semibold">{user.username || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <small className="text-muted">Email:</small> <span className="fw-semibold">{user.email || 'N/A'}</span>
-                              </div>
-                            </Col>
-                            {transaction.details && (
-                              <Col sm={12} className="mt-2 text-muted">
-                                <small>{transaction.details}</small>
+                      <div
+                        key={transaction.id}
+                        className={`transaction-collapsible mb-3 p-3 rounded shadow-sm`}
+                        style={{
+                          background: '#fff',
+                          transition: 'box-shadow 0.2s',
+                        }}
+                      >
+                        <div className="d-flex align-items-center justify-content-between">
+                          <div>
+                            <span className={`fw-bold text-capitalize me-2 text-${getTypeColor(transaction.type)}`}>
+                              {transaction.type.replace(/_/g, ' ')}
+                            </span>
+                            <span className={`transaction-status text-${getStatusColor(transaction.status)} text-uppercase fw-bold px-2`}>
+                              {transaction.status}
+                            </span>
+                          </div>
+                          <Button
+                            className='totobutton'
+                            size="sm"
+                            onClick={() => setOpenTransaction(isOpen ? null : transaction.id)}
+                          >
+                            {isOpen ? "Hide Details" : "Show Details"}
+                          </Button>
+                        </div>
+                        {isOpen && (
+                          <div className="mt-3">
+                            <Row>
+                              <Col sm={12} md={6} className="mb-2 mb-md-0">
+                                <small className="text-muted d-block">Date & Time</small>
+                                {transaction.date && !isNaN(new Date(transaction.date))
+                                  ? format(new Date(transaction.date), 'MMM dd, yyyy, p')
+                                  : 'N/A'}
                               </Col>
-                            )}
-                          </Row>
-                        </Accordion.Body>
-                      </Accordion.Item>
+                              <Col sm={6} md={3} className="mb-2 mb-md-0">
+                                <small className="text-muted d-block">Amount</small>
+                                {formatCurrency(transaction.amount)}
+                              </Col>
+                              <Col sm={6} md={3}>
+                                <small className="text-muted d-block">User ID</small>
+                                {transaction.userId}
+                              </Col>
+                              <Col sm={12} className="mt-2">
+                                <div>
+                                  <small className="text-muted">Username:</small> <span className="fw-semibold">{user.username || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <small className="text-muted">Email:</small> <span className="fw-semibold">{user.email || 'N/A'}</span>
+                                </div>
+                              </Col>
+                              {transaction.details && (
+                                <Col sm={12} className="mt-2 text-muted">
+                                  <small>{transaction.details}</small>
+                                </Col>
+                              )}
+                            </Row>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
-                </Accordion>
+                </div>
                 {totalPages > 1 && (
                   <Card.Footer className="d-flex justify-content-center">
                     <Pagination>{renderPaginationItems()}</Pagination>

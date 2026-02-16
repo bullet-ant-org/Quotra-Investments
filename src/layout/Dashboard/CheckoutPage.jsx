@@ -17,6 +17,7 @@ const buttonStyle = {
   borderRadius: '0.5rem'
 };
 
+
 const CheckoutPage = () => {
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [itemDetails, setItemDetails] = useState({});
@@ -27,10 +28,12 @@ const CheckoutPage = () => {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const { planId: planIdFromParams } = useParams();
+  const location = useLocation();
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
-    if (!userId) {
+    const token = localStorage.getItem('token');
+    if (!userId || !token) {
       navigate('/login');
       return;
     }
@@ -38,13 +41,27 @@ const CheckoutPage = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch user data
-        const userRes = await fetch(`${API_BASE_URL}/users/${userId}`);
+        const headers = { 'Authorization': `Bearer ${token}` };
+        // Fetch user data from backend
+        const userRes = await fetch(`${API_BASE_URL}/users/${userId}`, { headers });
         if (!userRes.ok) throw new Error('Failed to fetch user data.');
         const user = await userRes.json();
         setUserData(user);
 
-        // Fetch asset details
+        // If custom investment order (from Checkout.jsx), use location.state
+        if (location.state && location.state.amount) {
+          setPaymentAmount(location.state.amount);
+          setItemDetails({
+            name: location.state.itemName || 'Custom Investment',
+            type: location.state.type || 'custom_investment',
+            orderId: location.state.orderId,
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Otherwise, fetch asset details from backend
+        if (!planIdFromParams) throw new Error('No asset plan selected.');
         const planRes = await fetch(`${API_BASE_URL}/assets/${planIdFromParams}`);
         if (!planRes.ok) throw new Error('Failed to fetch asset details.');
         const asset = await planRes.json();
@@ -68,15 +85,16 @@ const CheckoutPage = () => {
     };
 
     fetchData();
-  }, [navigate, planIdFromParams]);
+  }, [navigate, planIdFromParams, location.state]);
 
   const handleConfirmPayment = async () => {
     setIsConfirming(true);
     setError('');
     setSuccess('');
+    const token = localStorage.getItem('token');
 
-    if (!userData || !userData.id) {
-      setError("User data not loaded. Cannot confirm payment.");
+    if (!userData || !userData.id || !token) {
+      setError("User data not loaded or user not authenticated. Cannot confirm payment.");
       setIsConfirming(false);
       return;
     }
@@ -88,29 +106,38 @@ const CheckoutPage = () => {
     }
 
     const newBalance = userData.balance - paymentAmount;
-    const order = {
-      orderId: `ord_${Math.random().toString(36).substr(2, 6)}`,
-      userId: userData.id,
-      assetId: itemDetails.id,
-      orderDate: new Date().toISOString(),
-      status: 'approved',
-      priceAtOrder: paymentAmount,
-      invitedByUserId: null,
-      editorDiscountApplied: false
-    };
 
     try {
-      // Update user balance
+      const headers = { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+      // Update user balance in backend
       await fetch(`${API_BASE_URL}/users/${userData.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ balance: newBalance })
       });
 
-      // Create asset order
-      await fetch(`${API_BASE_URL}/assetOrders`, {
+      // If this is a custom investment order (from Checkout.jsx), skip creating a new asset order
+      if (itemDetails.type === 'custom_investment' && itemDetails.orderId) {
+        setSuccess('Investment successful!');
+        setUserData({ ...userData, balance: newBalance });
+        setTimeout(() => navigate('/dashboard'), 2000);
+        return;
+      }
+
+      // Otherwise, create asset order in backend
+      const order = {
+        userId: userData.id,
+        assetId: itemDetails.id,
+        amount: paymentAmount,
+        type: itemDetails.type || 'plan_investment',
+        itemName: itemDetails.name || '',
+      };
+      await fetch(`${API_BASE_URL}/assetorders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(order)
       });
 

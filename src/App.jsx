@@ -1,10 +1,10 @@
 // c:\Users\Bullet Ant\Desktop\CODING\quotra\src\App.jsx
 import React from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom'; // Import useNavigate
 import Home from './layout/Home';
 import Login from './layout/LoginPage';
 import OtpVerificationPage from './layout/OtpVerificationPage'; // Import the new page
-
+import { ToastProvider } from './context/ToastContext'; // Adjust path
 // Import the Dashboard layout component
 import DashboardLayout from './layout/Dashboard'; // Renamed for clarity, assuming this is your layout file
 
@@ -48,7 +48,6 @@ import AboutPage from './layout/AboutPage';
 import { Spinner } from 'react-bootstrap'; // For loading state
 
 const ProtectedAdminRoute = ({ children }) => {
-  const navigate = useNavigate();
   const storedUser = localStorage.getItem('loggedInUser');
   let user = null;
   if (storedUser) {
@@ -57,8 +56,8 @@ const ProtectedAdminRoute = ({ children }) => {
     } catch (e) { console.error("Error parsing user for admin check", e); }
   }
 
-  // Check for admin role using the 'role' field in your user document
-  if (user && user.role === 'admin') {
+  // Robust admin role check (case/whitespace tolerant)
+  if (user && typeof user.role === 'string' && user.role.trim().toLowerCase() === 'admin') {
     return children;
   }
   return <Navigate to="/login" replace />;
@@ -68,9 +67,10 @@ const ProtectedAdminRoute = ({ children }) => {
 
 const App = () => {
   return (
+    <ToastProvider>
     <Router>
       <Routes>
-        {/* Top-level routes */}
+
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         {/* <Route path="/pricing" element={<PricingPage />} /> */}
@@ -141,6 +141,7 @@ const App = () => {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
+    </ToastProvider>
   );
 };
 

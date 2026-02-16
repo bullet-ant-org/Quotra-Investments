@@ -14,11 +14,17 @@ const PricingPage = () => {
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    fetch(`${API_BASE_URL}/assets`)
-      .then((res) => res.json())
-      .then((data) => setPlans(data))
-      .catch((err) => setError('Failed to load pricing plans'))
-      .finally(() => setIsLoading(false));
+        const token = localStorage.getItem('token');
+        fetch(`${API_BASE_URL}/assets`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error('Failed to fetch plans');
+            return res.json();
+          })
+          .then((data) => setPlans(data))
+          .catch(() => setError('Failed to load pricing plans'))
+          .finally(() => setIsLoading(false));
   }, []);
 
   const handleChoosePlan = (plan) => {
@@ -79,6 +85,9 @@ const PricingPage = () => {
                 </div>
                 <div className="text-dark small mb-1">
                   <strong>Trade Time:</strong> {plan.tradeTime || 'Not specified'} {plan.period}
+                </div>
+                <div className="text-dark small mb-1">
+                  <strong>Trade Duration:</strong> {plan.tradeDurationDays ? `${plan.tradeDurationDays} days` : 'Not specified'}
                 </div>
                 <div className="text-dark small">
                   <strong>Profit Potential:</strong> {plan.profitPotential || 'Variable'} %

@@ -1,63 +1,59 @@
+
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, InputGroup, Spinner } from 'react-bootstrap';
-import {
-  API_BASE_URL,
-  // Removed EMAILJS related imports as they are no longer used here
-} from '../../utils/api'; // Combined imports
-import { Wallet2, ClipboardCheck, Clipboard, ArrowLeft, WalletFill } from 'react-bootstrap-icons'; // Added WalletFill
+import { API_BASE_URL } from '../../utils/api';
+import { Wallet2, ClipboardCheck, Clipboard, WalletFill } from 'react-bootstrap-icons';
 
 const formatCurrency = (amount, currency = 'USD') => {
   if (typeof amount !== 'number' || isNaN(amount)) return `$0.00`;
   return amount.toLocaleString('en-US', { style: 'currency', currency: currency });
 };
 
+
 const Deposit = () => {
   const [amount, setAmount] = useState('');
-  // New state for the high-level payment system choice
-  const [chosenPaymentSystem, setChosenPaymentSystem] = useState('crypto'); // Default to 'crypto' as others are disabled
-  const [chosenCrypto, setChosenCrypto] = useState(''); // New state to track chosen cryptocurrency
+  const [chosenCrypto, setChosenCrypto] = useState('');
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
-
   const [adminSettings, setAdminSettings] = useState(null);
   const [currentWalletAddress, setCurrentWalletAddress] = useState('');
-
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
+
   useEffect(() => {
+    const token = localStorage.getItem('token');
     const fetchAdminSettings = async () => {
       setIsLoadingSettings(true);
       setError('');
       try {
-        const response = await fetch(`${API_BASE_URL}/adminSettings`);
+        // Fetch from the now public '/view' route
+        const response = await fetch(`${API_BASE_URL}/adminSettings/view`);
         if (!response.ok) throw new Error('Failed to load payment information. Please try again later.');
         const data = await response.json();
-        // Assuming data is the settings object directly, or the first element if it's an array
-        const settings = Array.isArray(data) && data.length > 0 ? data[0] : null; // Handle empty array case
+        const settings = Array.isArray(data) && data.length > 0 ? data[0] : data;
         if (settings) {
           setAdminSettings(settings);
-          // Initialize chosenCrypto with the first available crypto or an empty string if none are available
           const firstCrypto = Object.keys(settings).find(key => ['bitcoin', 'ethereum', 'usdt'].includes(key));
           setChosenCrypto(firstCrypto || '');
-          // Set initial wallet address based on the first available crypto
           setCurrentWalletAddress(firstCrypto ? settings[firstCrypto]?.walletAddress || '' : '');
         } else {
           setError('Admin settings not found.');
-          setAdminSettings(null); // Ensure adminSettings is null to trigger the error display
+          setAdminSettings(null);
         }
       } catch (err) {
         setError(err.message || 'Could not load payment options.');
-        setCurrentWalletAddress(''); // Ensure it's cleared on error
+        setCurrentWalletAddress('');
       } finally {
         setIsLoadingSettings(false);
       }
     };
     fetchAdminSettings();
-  }, []);
+  }, []); // Dependency array is correct, token is read inside.
 
   // Updated useEffect to change wallet address dynamically based on chosenCrypto
+
   useEffect(() => {
     if (adminSettings && chosenCrypto) {
       setCurrentWalletAddress(adminSettings[chosenCrypto]?.walletAddress || '');
@@ -66,6 +62,7 @@ const Deposit = () => {
     }
   }, [chosenCrypto, adminSettings]);
 
+
   const handleConfirm = (e) => {
     e.preventDefault();
     setError('');
@@ -73,22 +70,12 @@ const Deposit = () => {
       setError('Please enter a valid deposit amount.');
       return;
     }
-    // Check chosen payment system
-    if (chosenPaymentSystem !== 'crypto') {
-      setError('Please select Crypto as the payment method. Other methods are currently unavailable.');
-      return;
-    }
     if (!chosenCrypto) {
       setError('Please select a cryptocurrency.');
       return;
     }
-    // Ensure there's a valid address for the chosen crypto
     if (!adminSettings || !adminSettings[chosenCrypto] || !adminSettings[chosenCrypto].walletAddress) {
       setError(`Wallet address for ${chosenCrypto} is not available. Please contact support.`);
-      return;
-    }
-    if (!adminSettings[chosenCrypto]?.walletAddress) {
-      setError('Wallet address for the selected crypto is not available. Please contact support.');
       return;
     }
     setShowPaymentDetails(true);
@@ -106,16 +93,19 @@ const Deposit = () => {
     }
   };
 
+
   const handlePaymentMade = async () => {
     setError('');
     setCopied(false);
     setIsSubmitting(true);
 
-    const loggedInUserString = localStorage.getItem('loggedInUser');
-    const loggedInUser = loggedInUserString ? JSON.parse(loggedInUserString) : null;
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    const username = loggedInUser?.user?.username || loggedInUser?.username || 'Unknown';
 
-    if (!loggedInUser || !loggedInUser.id) {
-      setError('User not logged in. Cannot submit deposit request.');
+    if (!userId || !token || !loggedInUser) {
+      setError('User not authenticated. Cannot submit deposit request.');
       setIsSubmitting(false);
       return;
     }
@@ -123,23 +113,26 @@ const Deposit = () => {
     try {
       const blockchainDetails = adminSettings[chosenCrypto];
       const depositRecord = {
-        userId: loggedInUser.id,
-        username: loggedInUser.username,
-        crypto: chosenCrypto, // The selected cryptocurrency
-        blockchain: blockchainDetails?.blockchain || 'Unknown', // The blockchain name
-        walletAddress: blockchainDetails?.walletAddress || '', // The specific wallet address
-        // You might want to remove or adjust the generic fields
-        paymentMethod: 'crypto', // Keep the generic payment method
+        userId,
+        username: username,
+        crypto: chosenCrypto,
+        blockchain: blockchainDetails?.blockchain || 'Unknown',
+        walletAddress: blockchainDetails?.walletAddress || '',
+        paymentMethod: 'crypto',
         amount: parseFloat(amount),
-        paymentMethod: 'crypto', // Since we have one address, method is generically 'crypto'
-        transactionId: 'USER_WILL_PROVIDE_LATER_OR_VIA_SUPPORT', // Placeholder, ideally user provides this
+        transactionId: 'USER_WILL_PROVIDE_LATER_OR_VIA_SUPPORT',
         requestDate: new Date().toISOString(),
         status: 'pending',
       };
 
+      console.log('Submitting deposit record:', depositRecord);
+
       const response = await fetch(`${API_BASE_URL}/depositRequests`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(depositRecord),
       });
 
@@ -148,10 +141,8 @@ const Deposit = () => {
         const errorMessage = errorBody.message || `Failed to submit deposit request: ${response.statusText}`;
         throw new Error(errorMessage);
       }
-      // const createdDeposit = await response.json(); // Data is available if needed locally
 
-      // Email sending logic removed from this component.
-
+      console.log('Deposit request successful!');
       setShowPaymentDetails(false);
       setAmount('');
 
@@ -167,9 +158,8 @@ const Deposit = () => {
   const luxuriousCardStyle = {
     borderRadius: '20px',
     backdropFilter: 'blur(10px)',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
+
+    border: '1px solid rgba(255, 255, 255, 1)',
     overflow: 'hidden' // Ensures inner elements respect border radius
   };
 
@@ -178,7 +168,7 @@ const Deposit = () => {
 
   if (isLoadingSettings) {
     return (
-      <Container fluid className="p-4 d-flex justify-content-center align-items-center" style={{ minHeight: '80vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
+      <Container fluid className="p-4 d-flex justify-content-center align-items-center" style={{ minHeight: '80vh', background: 'white' }}>
         <Spinner animation="border" variant="primary" style={{ width: '3rem', height: '3rem' }} />
         <p className="ms-3 fs-5 text-primary">Loading payment options...</p>
       </Container>
@@ -187,7 +177,7 @@ const Deposit = () => {
 
   if (!adminSettings && !isLoadingSettings) { // If settings are null after loading (and not due to ongoing loading)
     return (
-        <Container fluid className="p-4" style={{ minHeight: '80vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
+        <Container fluid className="p-4" style={{ minHeight: '80vh', background: 'white' }}>
             <Row className="justify-content-center">
                 <Col xs={12} md={8} lg={6}>
                     <Alert variant="danger" className="text-center shadow-sm">
@@ -201,9 +191,9 @@ const Deposit = () => {
 }
 
   return (
-    <Container fluid className="py-5 px-3" style={{ background: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)', minHeight: '100vh' }}>
+    <Container fluid className="py-5 px-3" style={{ background: 'white', minHeight: '100vh' }}>
       <Row className="justify-content-center">
-        <Col xs={12} md={8} lg={6}>
+        <Col xs={12} md={12} lg={12}>
           <Card style={luxuriousCardStyle}>
             <Card.Header className="bg-transparent border-bottom-0 text-center py-4">
               <Wallet2 size={40} className="mb-2 text-primary" />
@@ -272,8 +262,7 @@ const Deposit = () => {
                     onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
                     onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                     disabled={
-                      chosenPaymentSystem !== 'crypto' || 
-                      !currentWalletAddress // Ensure the wallet address is loaded
+                      !chosenCrypto || !currentWalletAddress // Disable if no crypto is chosen or address is missing
                     }
                   >
                     Proceed to Payment

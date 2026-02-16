@@ -36,7 +36,7 @@ const DesktopSidebar = ({ isOpen, currentUser, onLogout, openAccountDetails, set
         as={NavLink}
         to={link.to}
         onClick={onClickHandler}
-        className={({ isActive }) => `dashboard-nav-link ${isActive ? 'active-dashboard-link' : ''}`}
+        className={({ isActive }) => `dashboard-nav-link ${isActive ? 'active-dashboard-link' : ''} text-dark-100`}
         end={link.to === '.'}
       >
         <FontAwesomeIcon icon={link.icon} className="me-2 fa-fw" />
@@ -104,7 +104,7 @@ const DesktopSidebar = ({ isOpen, currentUser, onLogout, openAccountDetails, set
 
   return (
     <div
-      className={`d-none d-lg-flex flex-column vh-100 bg-light shadow desktop-sidebar ${isOpen ? 'open' : 'closed'}`}
+      className={`d-none d-lg-flex flex-column vh-100 bg-light shadow text-muted desktop-sidebar ${isOpen ? 'open' : 'closed'}`}
       style={{
         width: isOpen ? '20vw' : '0px', // Desktop sidebar width as 20vw
         minWidth: isOpen ? '200px' : '0px', // Optional: minimum width for 20vw
@@ -134,14 +134,14 @@ const DesktopSidebar = ({ isOpen, currentUser, onLogout, openAccountDetails, set
         {currentUser && <hr className="dashboard-nav-divider" />}
         
         {currentUser && (
-          <Nav className="flex-column p-3 pt-0">
+          <Nav className="flex-column p-3 pt-0 text-muted">
             {renderAccountSubLinks(() => {})} {/* Empty onClick for desktop */}
           </Nav>
         )}
         
         {currentUser && <hr className="dashboard-nav-divider" />}
 
-        <Nav className="flex-column p-3 pt-0 flex-grow-1">
+        <Nav className="flex-column p-3 pt-0 flex-grow-1 text-muted">
           {renderMainDashboardNavLinks(() => {})} {/* Empty onClick for desktop */}
         </Nav>
 
@@ -212,7 +212,7 @@ const DashboardLayout = () => {
         setOpenAccountDetails={setOpenAccountDetailsInSidebar}
       />
       
-      <main className="content-wrapper"><Outlet /></main>
+      <main className="content-wrapper bg-white pe-0 pe-lg-3 ms-0 ms-lg-3"><Outlet /></main>
     </div>
   );
 };

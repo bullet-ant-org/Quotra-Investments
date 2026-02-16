@@ -66,7 +66,7 @@ const RatingStars = ({ rating }) => {
 
 const Testimony = () => {
   return (
-    <section className="testimony-section py-5 bg-light"> {/* Section wrapper */}
+    <section className="testimony-section py-5 bg-white"> {/* Section wrapper */}
       <div className="container">
         <h2 className="text-center mb-5">What Our Clients Say</h2> {/* Section title */}
         <div className="row g-4"> {/* Use g-4 for gutters */}

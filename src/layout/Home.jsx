@@ -3,7 +3,7 @@ import Marquee from './Marquee';
 import HeroSection from './HeroSection';
 import Schemes from './schemes';
 import SecSection from './secSection';
-import PlanSection from './PlanSection';
+
 import TvFrame from './tvframe';
 import Footer from './Footer';
 import SecSection3 from './secSection3';
@@ -24,11 +24,11 @@ const Home = () => {
       <HeroSection />
       <SecSection2 />
       <Schemes />
+      <SecSection4 />
+      
       <SecSection />
-      <PlanSection />
       <SecSection3 />
       <PartnerSlider />
-      <SecSection4 />
       <Testimony />
       <TvFrame />
       <Footer />

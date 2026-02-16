@@ -2,7 +2,7 @@ import React, { StrictMode, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
-import App from './App.jsx';
+import App from "./App.jsx"
 
 import CustomSpinner from './components/CustomSpinner'; // Assuming you have a CustomSpinner component
 import { Container, Row, Col } from 'react-bootstrap';

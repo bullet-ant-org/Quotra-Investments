@@ -1,6 +1,16 @@
+// Helper to handle 401 Unauthorized globally
+export function handle401(response) {
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    window.location.href = '/login';
+    return true;
+  }
+  return false;
+}
 // filepath: src/utils/api.js
-// export const API_BASE_URL = 'https://quotra-json-server-production.up.railway.app';
-export const API_BASE_URL = 'https://quotra-json-server-production.up.railway.app';
+
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 export const CLOUDINARY_CLOUD_NAME = 'djzi0scln'; // Replace with your actual cloud name
 export const CLOUDINARY_UPLOAD_PRESET = 'user_profile_pictures'; // Replace with your actual upload preset
 

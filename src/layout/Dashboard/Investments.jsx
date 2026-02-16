@@ -54,11 +54,13 @@ const InvestmentCard = ({ investment }) => (
 );
 
 const Investments = () => {
+
   const [investments, setInvestments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userName, setUserName] = useState('User');
   const userId = localStorage.getItem('userId');
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
@@ -67,116 +69,20 @@ const Investments = () => {
     }
 
     const fetchData = async () => {
-      if (!userId) {
-        setError("User ID not found. Cannot fetch investments.");
+      if (!userId || !token) {
+        setError("User not authenticated. Cannot fetch investments.");
         setIsLoading(false);
         return;
       }
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch all asset orders and all assets
-        const [ordersRes, assetsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/assetOrders?userId=${userId}`),
-          fetch(`${API_BASE_URL}/assets`)
-        ]);
-        if (!ordersRes.ok) throw new Error('Failed to fetch investments');
-        if (!assetsRes.ok) throw new Error('Failed to fetch assets');
-        const orders = await ordersRes.json();
-        const assets = await assetsRes.json();
-
-        // Map assetId to asset for quick lookup
-        const assetMap = {};
-        assets.forEach(asset => {
-          assetMap[asset.id] = asset;
-        });
-
-        // Enrich each investment order
-        const enriched = orders.map(order => {
-          const asset = assetMap[order.assetId] || {};
-          // Parse priceRange as number (use min if range)
-          let priceRange = 0;
-          if (typeof asset.priceRange === 'string') {
-            priceRange = parseFloat(asset.priceRange.split('-')[0]);
-          } else if (typeof asset.priceRange === 'number') {
-            priceRange = asset.priceRange;
-          }
-          // Trade duration days
-          let tradeDurationDays = Number(asset.tradeDurationDays) || 1;
-          // Dates
-          const start = parseISO(order.orderDate);
-          const now = new Date();
-          let elapsedDays = differenceInDays(now, start);
-          if (elapsedDays < 0) elapsedDays = 0;
-          if (elapsedDays > tradeDurationDays) elapsedDays = tradeDurationDays;
-          // Profit calculation
-          let profitPotential = Number(asset.profitPotential) || 0;
-          let totalProfit = priceRange * (profitPotential / 100);
-          let dailyProfit = totalProfit / tradeDurationDays;
-          let accruedProfit = +(dailyProfit * elapsedDays).toFixed(2);
-          if (accruedProfit > totalProfit) accruedProfit = totalProfit;
-          // Time left logic
-          let daysLeft = tradeDurationDays - elapsedDays;
-          let timeLeft = daysLeft <= 0 ? 'Completed' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`;
-
-          return {
-            ...order,
-            assetName: asset.name || 'N/A',
-            invested: priceRange,
-            timeLeft,
-            accruedProfit,
-            totalProfit,
-            tradeDurationDays,
-            profitPotential,
-            priceRange,
-          };
-        });
-
-        // After enrichment:
-        enriched.forEach(async (investment) => {
-          if (investment.timeLeft === 'Completed' && !investment.payoutProcessed) {
-            // Calculate profit
-            const profit = investment.invested * investment.profitPotential;
-
-            // 1. Update user balance
-            const userRes = await fetch(`${API_BASE_URL}/users/${userId}`);
-            const user = await userRes.json();
-            const newBalance = (user.balance || 0) + profit;
-            await fetch(`${API_BASE_URL}/users/${userId}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ balance: newBalance })
-            });
-
-            // 2. Add a payout transaction (to assetOrders or transactions endpoint)
-            await fetch(`${API_BASE_URL}/transactions`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId,
-                type: 'investment_payout',
-                amount: profit,
-                date: new Date().toISOString(),
-                status: 'completed',
-                details: `Profit payout for investment in ${investment.assetName}`
-              })
-            });
-
-            // 3. Optionally, mark this investment as payoutProcessed to avoid duplicate payouts
-            // (You can PATCH the assetOrder or keep a local flag)
-            await fetch(`${API_BASE_URL}/assetOrders/${investment.id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ payoutProcessed: true })
-            });
-          }
-        });
-
-        setInvestments(
-          enriched
-            .filter(inv => inv.timeLeft !== 'Completed')
-            .sort((a, b) => (b.timeLeft === 'Active' ? 1 : -1))
-        );
+        const headers = { 'Authorization': `Bearer ${token}` };
+        // Fetch only the current user's investments from the backend
+        const res = await fetch(`${API_BASE_URL}/assetOrders?userId=${userId}`, { headers });
+        if (!res.ok) throw new Error('Failed to fetch investments');
+        const data = await res.json();
+        setInvestments(Array.isArray(data) ? data : []);
       } catch (err) {
         setError(err.message || 'An unknown error occurred.');
       } finally {
@@ -185,7 +91,7 @@ const Investments = () => {
     };
 
     fetchData();
-  }, [userId]);
+  }, [userId, token]);
 
   if (isLoading) return <Container className="text-center mt-5"><Spinner animation="border" /><p>Loading investments...</p></Container>;
   if (error) return <Container className="mt-4"><Alert variant="danger">{error}</Alert></Container>;
@@ -197,11 +103,11 @@ const Investments = () => {
       <Row>
         {investments.length > 0 ? (
           investments.map(investment => (
-            <InvestmentCard key={investment.id} investment={investment} />
+            <InvestmentCard key={investment.id || investment._id} investment={investment} />
           ))
         ) : (
           <Col>
-            <Alert variant="info">You currently have no active or completed investments to display.</Alert>
+            <Alert variant="info">You currently have no investments to display.</Alert>
           </Col>
         )}
       </Row>

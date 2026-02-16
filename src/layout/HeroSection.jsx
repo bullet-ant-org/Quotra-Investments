@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { loadFull } from "tsparticles";
 
 // Define the content for each slide
 const slides = [
   {
     id: 1,
-    backgroundImage: 'url(https://www.nasdaq.com/sites/acquia.prod/files/styles/1370x700/public/gobankingrates/iStock-1417583870-2.jpg?1747554617822262737)', // Use correct path relative to public or import
     title: 'Quotra Investment',
     line1: 'EMBARK ON YOUR TRADING JOURNEY',
     line2: 'WITH A GLOBAL MARKET LEADER',
     buttons: [
-      { text: 'Get Started', link: '/login', variant: 'btnpricolor' }, // Changed link to /login
-      { text: 'Pricing', link: '/services', variant: 'btn-secondary' }, // Changed link to /pricing
+      { text: 'Get Started', link: '/login', variant: 'btn-light' }, // Changed link to /login
+      { text: 'Pricing', link: '#pricing', variant: 'btn-secondary' }, // Changed link to /pricing
     ],
   },
   {
     id: 2,
-    backgroundImage: 'url(https://wallpapers.com/images/high/beautiful-representation-of-investment-h9o0tdbw0vfp181s.webp)', // Replace with your second image path
     title: 'Diverse Portfolio Options',
     line1: 'EXPLORE STOCKS, FOREX, AND FUTURES',
     line2: 'TAILORED TO YOUR INVESTMENT STYLE',
@@ -27,23 +27,21 @@ const slides = [
   
   {
     id: 3,
-    backgroundImage: 'url(https://img.freepik.com/free-photo/panoramic-view-dubai-city-illuminated-neon-spectrum_23-2151305340.jpg?uid=R147793746&ga=GA1.1.411146356.1744773989&semt=ais_hybrid&w=740)', // Replace with your third image path
     title: 'Secure Your Future',
     line1: 'BUILD WEALTH WITH EXPERT GUIDANCE',
     line2: 'JOIN MILLIONS OF SATISFIED INVESTORS',
     buttons: [
-      { text: 'Open Account', link: '/login', variant: 'btn-warning' }, // Example button
-      { text: 'Services', link: '/services', variant: 'btn-info' }, // Example button
+      { text: 'Open Account', link: '/login', variant: 'btn-outline-light' }, // Example button
+      { text: 'Services', link: '/services', variant: 'btn-secondary' }, // Example button
     ],
   },
   // Add more slides as needed
 ];
 
-const HeroSection = () => {
+const SlideShow = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   useEffect(() => {
-    // Set up the interval timer
     const timer = setInterval(() => {
       setCurrentSlideIndex((prevIndex) =>
         prevIndex === slides.length - 1 ? 0 : prevIndex + 1
@@ -57,29 +55,141 @@ const HeroSection = () => {
   const currentSlide = slides[currentSlideIndex];
 
   return (
-    // Apply background image dynamically and add class for transitions
     <div
-      className="container-fluid d-flex flex-column align-items-center justify-content-center herocont-slideshow"
-      style={{ backgroundImage: currentSlide.backgroundImage }}
+      className="text-center hero-content text-white"
+      style={{ zIndex: 1 }}
+      key={currentSlide.id}
     >
-      {/* Add a key to the inner div to force re-render on slide change for animations */}
-      <div className="text-center hero-content" key={currentSlide.id}>
-        {/* Use responsive display classes */}
-        <h1 className="Levelo display-3 display-md-1">{currentSlide.title}</h1>
-        <p className="lead">{currentSlide.line1}</p>
-        <p>{currentSlide.line2}</p>
-        {/* Map through the buttons for the current slide */}
-        {currentSlide.buttons.map((button, index) => (
-          <Link
-            key={index}
-            to={button.link}
-            // Combine base btn classes with slide-specific variant
-            className={`btn ${button.variant} btn-lg mx-1`} // Added mx-1 for spacing
-          >
-            {button.text}
-          </Link>
-        ))}
-      </div>
+      <h1 className="Levelo display-3 display-md-1">{currentSlide.title}</h1>
+      <p className="lead">{currentSlide.line1}</p>
+      <p>{currentSlide.line2}</p>
+      {currentSlide.buttons.map((button, index) => (
+        <Link
+          key={index}
+          to={button.link}
+          className={`btn ${button.variant} btn-lg mx-1`}
+        >
+          {button.text}
+        </Link>
+      ))}
+    </div>
+  );
+};
+
+const HeroSection = () => {
+  const [init, setInit] = useState(false);
+
+  // this should be run only once per application lifetime
+  useEffect(() => {
+    initParticlesEngine(async (engine) => {
+      // you can initiate the tsParticles instance (engine) here, adding custom shapes or presets
+      // this loads the tsparticles package bundle, it's the easiest method for getting everything ready
+      // starting from v2 you can add only the features you need reducing the bundle size
+      await loadFull(engine);
+    }).then(() => {
+      setInit(true);
+    });
+  }, []);
+
+  const particlesLoaded = (container) => {
+    console.log("Particles container loaded", container);
+  };
+  const particlesOptions = useMemo(() => ({
+    fullScreen: {
+      enable: false,
+    },
+    background: {
+      color: {
+        value: "#0b0f13ff", // A dark, professional background
+      },
+    },
+    fpsLimit: 90,
+    interactivity: {
+      events: {
+        onHover: {
+          enable: true,
+          mode: "repulse",
+        },
+        resize: true,
+      },
+      modes: {
+        repulse: {
+          distance: 100,
+          duration: 0.4,
+        },
+      },
+    },
+    particles: {
+      color: {
+        value: "#ffffff",
+      },
+      links: {
+        color: "#ffffff",
+        distance: 150,
+        enable: true,
+        opacity: 0.2,
+        width: 1,
+      },
+      collisions: {
+        enable: false,
+      },
+      move: {
+        direction: "none",
+        enable: true,
+        outModes: {
+          default: "bounce",
+        },
+        random: false,
+        speed: 2,
+        straight: false,
+      },
+      number: {
+        density: {
+          enable: true,
+          area: 20,
+        },
+        value: 150,
+      },
+      opacity: {
+        value: 0.5,
+      },
+      shape: {
+        type: "circle",
+      },
+      size: {
+        value: { min: 1, max: 5 },
+      },
+    },
+    detectRetina: true,
+  }), []);
+
+  if (!init) {
+    return null; // or a loading spinner
+  }
+
+  return (
+    <div
+      className="container-fluid position-relative d-flex flex-column align-items-center justify-content-center herocont-slideshow"
+      style={{ minHeight: '80vh' }}
+    >
+      {/*
+        This style block is the key fix. It targets the container div that
+        tsparticles creates (using the id="tsparticles") and forces it to
+        fill its parent.
+      */}
+      <style>
+        {`
+          #tsparticles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+          }
+        `}
+      </style>
+      <Particles id="tsparticles" particlesLoaded={particlesLoaded} options={particlesOptions} />
+      <SlideShow />
     </div>
   );
 };

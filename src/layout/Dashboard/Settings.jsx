@@ -1,7 +1,8 @@
 // src/Dashboard/Settings.jsx
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Spinner, Alert, ButtonGroup, Card } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Spinner, ButtonGroup, Card, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext';
 import { API_BASE_URL } from '../../utils/api';
 
 const Settings = () => {
@@ -13,77 +14,69 @@ const Settings = () => {
     phone: '',
     // profileImageUrl is handled in Profile.jsx, not typically edited here unless specified
     withdrawalAccount: '', // For Withdrawal tab
-    withdrawalPin: '',     // For Withdrawal tab (consider security implications)
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '', // Optional: for verifying before changing
     newPassword: '',
     confirmPassword: '',
   });
+  const { addToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile', 'security', 'withdrawal'
+  const [activeTab, setActiveTab] = useState('profile');
+
+  const tabs = [
+    { key: 'profile', name: 'Profile' },
+    { key: 'security', name: 'Security' },
+    { key: 'withdrawal', name: 'Withdrawal' },
+  ];
 
   // --- Fetch User Data ---
   useEffect(() => {
     const fetchUserData = async () => {
       setIsLoading(true);
-      setError(null);
       try {
-        // Consistently use 'userId' or 'loggedInUser' as set by LoginPage
+        const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
-        const storedUserString = localStorage.getItem('loggedInUser');
-
-        let userToFetchId = userId;
-        if (!userToFetchId && storedUserString) {
-            const storedUserObj = JSON.parse(storedUserString);
-            userToFetchId = storedUserObj.id;
-        }
-
-        if (!userToFetchId) {
+        if (!token || !userId) {
+          addToast('Authentication required. Please log in.', 'error');
           navigate('/login');
           setIsLoading(false);
           return;
         }
-
-        const response = await fetch(`${API_BASE_URL}/users/${userToFetchId}`, {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
-            // No Authorization header for simple JSON server
+            'Authorization': `Bearer ${token}`,
           },
         });
-
         if (!response.ok) {
           if (response.status === 401) {
-            navigate('/login'); // Redirect to login if unauthorized
+            navigate('/login');
           }
           throw new Error('Failed to fetch user data');
         }
-
         const data = await response.json();
         setUserData({
-          id: data.id,
+          id: data._id || data.id,
           username: data.username || '',
           fullName: data.fullName || '',
           email: data.email || '',
           phone: data.phone || '',
-          withdrawalAccount: data.withdrawalAccount || '', // Fetch if stored
-          // withdrawalPin should not be fetched for display
+          withdrawalAccount: data.withdrawalAccount || '',
         });
       } catch (err) {
         console.error('Error fetching user data for settings:', err);
-        setError(`Failed to load settings: ${err.message}`);
+        addToast(`Failed to load settings: ${err.message}`, 'error');
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchUserData();
-  }, [navigate]);
+  }, [navigate, addToast]);
 
   // --- Handle Input Changes ---
   const handleInputChange = (e) => {
@@ -91,92 +84,94 @@ const Settings = () => {
     setUserData((prev) => ({
       ...prev, [name]: value,
     }));
-    if (error) setError(null);
-    if (success) setSuccess(null);
   };
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData((prev) => ({ ...prev, [name]: value }));
-    if (error) setError(null);
-    if (success) setSuccess(null);
   };
 
   // --- Save Changes (Simplified for example, adapt based on which tab is active) ---
   const handleSaveChanges = async (e) => {
     e.preventDefault();
     setIsSaving(true);
-    setError(null);
-    setSuccess(null);
+    const token = localStorage.getItem('token');
     if (passwordData.newPassword && passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('New passwords do not match.');
+      addToast('New passwords do not match.', 'error');
       setIsSaving(false);
       return;
     }
 
     try {
       let payload = {};
-      let endpoint = `${API_BASE_URL}/users/${userData.id}`; // Default endpoint
-
       if (activeTab === 'profile') {
         payload = {
           fullName: userData.fullName,
-          phone: userData.phone, // Assuming phone is part of general profile
+          phone: userData.phone,
           username: userData.username,
         };
       } else if (activeTab === 'security') {
         payload = {};
-        if (userData.phone) payload.phone = userData.phone; // If phone is also in security
+        if (userData.phone) payload.phone = userData.phone;
         if (passwordData.newPassword) {
-          // Add currentPassword to payload if your backend requires it for verification
-          // payload.currentPassword = passwordData.currentPassword;
-          payload.password = passwordData.newPassword; // Backend should hash this
+          payload.password = passwordData.newPassword;
         }
       } else if (activeTab === 'withdrawal') {
         payload = {
           withdrawalAccount: userData.withdrawalAccount,
-          // Withdrawal PIN should be handled with extreme care,
-          // often involving a separate, more secure endpoint or flow.
-          withdrawalPin: userData.withdrawalPin, // Ensure backend encrypts this
         };
-        // Potentially a different endpoint for withdrawal settings
-        // endpoint = `${API_BASE_URL}/users/${userData.id}/withdrawal-settings`;
       }
 
       if (Object.keys(payload).length === 0) {
-        setSuccess("No changes to save for this section.");
+        addToast('No changes to save for this section.', 'info');
         setIsSaving(false);
         return;
       }
 
-      const res = await fetch(endpoint, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`${API_BASE_URL}/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to update ${activeTab} settings.`);
+        addToast(errorData.message || `Failed to update ${activeTab} settings.`, 'error');
+        setIsSaving(false);
+        return;
       }
 
       // Update localStorage 'loggedInUser' if it exists and matches
       const localUserString = localStorage.getItem('loggedInUser');
-      if (localUserString && JSON.parse(localUserString).id === userData.id) {
+      if (localUserString) {
         const currentLocalUser = JSON.parse(localUserString);
-        const updatedLocalUser = { ...currentLocalUser, ...payload }; // Merge changes
-        delete updatedLocalUser.password; // Never store new password in localStorage
-        delete updatedLocalUser.withdrawalPin; // Never store PIN in localStorage
-        localStorage.setItem('loggedInUser', JSON.stringify(updatedLocalUser));
+        if (currentLocalUser.id === userData.id || currentLocalUser._id === userData.id) {
+          const updatedPayload = { ...payload };
+          delete updatedPayload.password;
+          const newLocalUser = { ...currentLocalUser, ...updatedPayload };
+          localStorage.setItem('loggedInUser', JSON.stringify(newLocalUser));
+        }
       }
-      setSuccess('Settings saved successfully!');
-      setPasswordData({ newPassword: '', confirmPassword: '' }); // Clear password fields
+      addToast('Settings saved successfully!', 'success');
+      setPasswordData({ newPassword: '', confirmPassword: '' });
     } catch (err) {
-      setError('Failed to save settings: ' + err.message);
+      addToast('Failed to save settings: ' + err.message, 'error');
     } finally {
       setIsSaving(false);
     }
   };
+
+  // Use an effect to show the toast only once if data loading fails
+  useEffect(() => {
+    if (!isLoading && !userData.id) {
+      addToast('Failed to load user data. Please try logging in again.', 'error');
+      // Optionally navigate away if the page is unusable without user data
+      // navigate('/dashboard'); 
+    }
+  }, [isLoading, userData.id, addToast, navigate]);
 
   if (isLoading) {
     return (
@@ -186,48 +181,25 @@ const Settings = () => {
     );
   }
 
-  if (error && !userData.id) { // Show full page error only if user data failed to load initially
-    return (
-      <Container className="mt-5">
-        <Alert variant="danger">{error}</Alert>
-      </Container>
-    );
-  }
-
-  const inputClass = "form-control rounded-pill shadow-lg border-0 mb-3";
-
+  const inputClass = "form-control rounded-2 shadow-sm border-0 mb-3 p-3";
   return (
     <Container className="mt-4">
       <h2 className="mb-4">Edit Your Account</h2>
 
-      {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
-      {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
-
-      <Card className="shadow-sm border-0 bg-transparent">
-        <Card.Header className="p-0 border-bottom-0">
-          <ButtonGroup size="sm" className="w-100">
-            <Button
-              variant={activeTab === 'profile' ? 'primary' : 'outline-primary'}
-              onClick={() => setActiveTab('profile')}
-              className="rounded-0"
-            >
-              Profile
-            </Button>
-            <Button
-              variant={activeTab === 'security' ? 'primary' : 'outline-primary'}
-              onClick={() => setActiveTab('security')}
-              className="rounded-0"
-            >
-              Security
-            </Button>
-            <Button
-              variant={activeTab === 'withdrawal' ? 'primary' : 'outline-primary'}
-              onClick={() => setActiveTab('withdrawal')}
-              className="rounded-0"
-            >
-              Withdrawal
-            </Button>
-          </ButtonGroup>
+      <Card className=" border-0 bg-transparent">
+        <Card.Header className="p-0 border-bottom-0 bg-transparent">
+          <div className="settings-tab-selectors d-flex w-100">
+            {tabs.map(tab => (
+              <div
+                key={tab.key}
+                className={`settings-tab-selector flex-grow-1 text-center py-2 px-3 ${activeTab === tab.key ? 'active-tab shadow-sm bg-white' : 'inactive-tab'}`}
+                style={activeTab === tab.key ? {} : { borderBottom: '2px solid #000', cursor: 'pointer', background: '#f8f9fa' }}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.name}
+              </div>
+            ))}
+          </div>
         </Card.Header>
         <Card.Body className="p-4">
           <Form onSubmit={handleSaveChanges}>
@@ -294,6 +266,10 @@ const Settings = () => {
                   />
                 </Form.Group>
                 <Alert variant="warning" className="mt-4">
+                  <strong>Security Notice:</strong> For your protection, withdrawal PINs are not set or changed on this page. Please contact support for assistance with your PIN.
+                </Alert>
+
+                <Alert variant="info" className="mt-4">
                   <strong>Important:</strong> Make sure that your wallet address is a USDT, TRC20 account. If not, your Withdrawals cannot be placed.
                 </Alert>
               </>

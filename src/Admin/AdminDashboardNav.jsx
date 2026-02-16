@@ -44,14 +44,14 @@ const SidebarContent = ({
   const [isDepositOpen, setIsDepositOpen] = useState(false);
 
   const commonNavLinkClass = ({ isActive }) =>
-    `nav-link d-flex align-items-center sidebar-link py-2 ${isActive ? 'active-dashboard-link' : 'text-dark'}`;
+    `nav-link d-flex align-items-center text-dark py-5 my-3 ${isActive ? 'text-muted' : 'text-dark'}`;
 
   return (
     <div className="d-flex flex-column h-100">
-      <Link to="/admin" className="navbar-brand mb-2 mt-2 text-primary fw-bold d-block fs-4 px-3" onClick={onNavLinkClick}>
+      <Link to="/admin" className="navbar-brand mb-2 mt-2 text-white fw-bold d-block fs-4 px-3" onClick={onNavLinkClick}>
         <FontAwesomeIcon icon={faTachometerAlt} className="me-2" />Quotra Admin
       </Link>
-      <hr className="sidebar-divider mx-3 mt-0 mb-2" />
+      <hr className="sidebar-divider mx-3 mt-0 mb-2" style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
 
       {/* User Info Accordion */}
       <div className="user-info-section px-2 mb-2">
@@ -60,69 +60,66 @@ const SidebarContent = ({
           aria-controls="user-info-collapse"
           aria-expanded={isUserInfoOpen}
           variant="link"
-          className="dashboard-offcanvas-account-toggle text-decoration-none text-dark w-100 d-flex align-items-center p-3 py-2"
+          className="dashboard-offcanvas-account-toggle text-decoration-none text-white w-100 d-flex align-items-center p-3 py-2"
         >
           {/* Removed profile image */}
           <div className="flex-grow-1 text-start">
             <div className="dashboard-offcanvas-full-name fw-bold text-primary">{currentUser?.username || 'Admin User'}</div>
-            <div className="dashboard-offcanvas-email text-muted small">{currentUser?.email}</div>
+            <div className="dashboard-offcanvas-email text-light opacity-75 small">{currentUser?.email}</div>
           </div>
-          <FontAwesomeIcon icon={isUserInfoOpen ? faChevronUp : faChevronDown} className="ms-2 text-secondary" />
+          <FontAwesomeIcon icon={isUserInfoOpen ? faChevronUp : faChevronDown} className="ms-2 text-light" />
         </Button>
         <Collapse in={isUserInfoOpen}>
           <div id="user-info-collapse" className="mt-2 ps-2">
             <div className="mb-2">
-              <small className="text-muted d-block">Total Users:</small>
+              <small className="text-light opacity-75 d-block">Total Users:</small>
               <span className="fw-bold">{totalUsers === null ? <Spinner size="sm" animation="border" /> : totalUsers}</span>
             </div>
             <div className="mb-2">
-              <small className="text-muted d-block">Total Deposits:</small>
+              <small className="text-light opacity-75 d-block">Total Deposits:</small>
               <span className="fw-bold">{totalDeposits === null ? <Spinner size="sm" animation="border" /> : totalDeposits}</span>
             </div>
-            <Nav.Link as={NavLink} to="/admin/transactions" onClick={onNavLinkClick} className={commonNavLinkClass}>
-              <FontAwesomeIcon icon={faListAlt} className="me-2" fixedWidth />Transactions
-            </Nav.Link>
           </div>
         </Collapse>
       </div>
 
       {/* Main Navigation Links */}
-      <Nav className="flex-column nav-pills px-3 flex-grow-1">
+      <Nav className="flex-column nav-pills flex-grow-1">
         <div className="mb-1">
           <Button
             onClick={() => setIsDepositOpen(!isDepositOpen)}
             aria-controls="deposit-links-collapse"
             aria-expanded={isDepositOpen}
             variant="link"
-            className={`nav-link d-flex align-items-center sidebar-link py-3 w-100 ${isDepositOpen ? 'text-primary' : 'text-dark'}`}
+            className={`nav-link d-flex align-items-center sidebar-link py-3 w-100 ${isDepositOpen ? 'text-primary' : 'text-light'}`}
           >
             <FontAwesomeIcon icon={faCreditCard} className="me-2" fixedWidth />Deposit
-            <FontAwesomeIcon icon={isDepositOpen ? faChevronUp : faChevronDown} className="ms-auto text-secondary" />
+            <FontAwesomeIcon icon={isDepositOpen ? faChevronUp : faChevronDown} className="ms-auto" />
           </Button>
           <Collapse in={isDepositOpen}>
-            <div id="deposit-links-collapse" className="ps-3">
-              <Nav.Link as={NavLink} to="/admin/add-bonus" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faGem} className="me-2" fixedWidth />Add Bonus</Nav.Link>
-              <Nav.Link as={NavLink} to="/admin/create-deposit" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faPlusSquare} className="me-2" fixedWidth />Create Deposit</Nav.Link>
+            <div id="deposit-links-collapse" className="ps-4">
+              <Nav.Link as={NavLink} to="/admin/add-bonus" onClick={onNavLinkClick} className="sidebar-sublink bg-transparent"><FontAwesomeIcon icon={faGem} className="me-2 mt-2" fixedWidth />Add Bonus</Nav.Link>
+              <Nav.Link as={NavLink} to="/admin/create-deposit" onClick={onNavLinkClick} className="sidebar-sublink bg-transparent"><FontAwesomeIcon icon={faPlusSquare} className="me-2 mt-2" fixedWidth />Create Deposit</Nav.Link>
             </div>
           </Collapse>
         </div>
         {/* Other main links */}
-        <Nav.Link as={NavLink} to="/admin/users" onClick={onNavLinkClick} className={commonNavLinkClass}>
+        <Nav.Link as={NavLink} to="/admin/users" onClick={onNavLinkClick} className="sidebar-link mt-2">
           <FontAwesomeIcon icon={faUserCircle} className="me-2" fixedWidth />Users
         </Nav.Link>
-        <Nav.Link as={NavLink} to="/admin/admintransactions" end onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faListAlt} className="me-2" fixedWidth />Transactions</Nav.Link>
-        <Nav.Link as={NavLink} to="/admin/pricing-admin" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faFolderOpen} className="me-2" fixedWidth />Assets Management</Nav.Link>
-        <Nav.Link as={NavLink} to="/admin/loan-types-admin" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faExchangeAlt} className="me-2" fixedWidth />Loans Management</Nav.Link>
-        <Nav.Link as={NavLink} to="/admin/settings" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faCog} className="me-2" fixedWidth />Site Settings</Nav.Link>
-        <Nav.Link as={NavLink} to="/admin/loanorders" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faHandshake} className="me-2" fixedWidth />Loan Orders</Nav.Link>
-        <Nav.Link as={NavLink} to="/admin/deposit-requests" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faArrowAltCircleDown} className="me-2" fixedWidth />Deposit Requests</Nav.Link>
-        <Nav.Link as={NavLink} to="/admin/withdrawal-requests" onClick={onNavLinkClick} className={commonNavLinkClass}><FontAwesomeIcon icon={faArrowAltCircleUp} className="me-2" fixedWidth />Withdrawal Requests</Nav.Link>
+        <Nav.Link as={NavLink} to="/admin/admintransactions" end onClick={onNavLinkClick} className="sidebar-link mt-2"><FontAwesomeIcon icon={faListAlt} className="me-2" fixedWidth />Transactions</Nav.Link>
+        <Nav.Link as={NavLink} to="/admin/pricing-admin" onClick={onNavLinkClick} className='sidebar-link mt-2'><FontAwesomeIcon icon={faFolderOpen} className="me-2" fixedWidth />Assets Management</Nav.Link>
+        <Nav.Link as={NavLink} to="/admin/loan-types-admin" onClick={onNavLinkClick} className='sidebar-link mt-2'><FontAwesomeIcon icon={faExchangeAlt} className="me-2" fixedWidth />Loans Management</Nav.Link>
+        <Nav.Link as={NavLink} to="/admin/settings" onClick={onNavLinkClick} className='sidebar-link mt-2'><FontAwesomeIcon icon={faCog} className="me-2" fixedWidth />Site Settings</Nav.Link>
+        <Nav.Link as={NavLink} to="/admin/loanorders" onClick={onNavLinkClick} className='sidebar-link mt-2'><FontAwesomeIcon icon={faHandshake} className="me-2" fixedWidth />Loan Orders</Nav.Link>
+        <Nav.Link as={NavLink} to="/admin/deposit-requests" onClick={onNavLinkClick} className='sidebar-link mt-2'><FontAwesomeIcon icon={faArrowAltCircleDown} className="me-2" fixedWidth />Deposit Requests</Nav.Link>
+        <Nav.Link as={NavLink} to="/admin/withdrawal-requests" onClick={onNavLinkClick} className='sidebar-link mt-2'><FontAwesomeIcon icon={faArrowAltCircleUp} className="me-2" fixedWidth />Withdrawal Requests</Nav.Link>
       </Nav>
 
       {/* Logout at the bottom */}
       <div className="mt-auto p-3 border-top">
         {currentUser?.email && (
-          <small className="text-muted d-block mb-1" style={{ fontSize: '0.8em' }}>Admin: {currentUser.email}</small>
+          <small className="text-light opacity-75 d-block mb-1" style={{ fontSize: '0.8em' }}>Admin: {currentUser.email}</small>
         )}
         <Button variant="outline-danger" size="sm" onClick={handleLogout} className="w-100">
           <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />Logout
@@ -153,20 +150,37 @@ const AdminDashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/users/${storedUserId}`);
-
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        };
+        // Try to fetch the user by ID
+        const response = await fetch(`${API_BASE_URL}/users/${storedUserId}`, { headers });
         if (!response.ok) {
-          if (response.status === 401) navigate('/login');
-          throw new Error('Failed to fetch user data for admin check');
+          // If fetch fails (not found, unauthorized, etc.), go to login
+          navigate('/login');
+          return;
         }
-
         const userData = await response.json();
-        if (userData && userData.role === 'admin') {
+        // Robust admin role check: check both userData.role and userData.user.role
+        let role = '';
+        if (userData) {
+          if (typeof userData.role === 'string') {
+            role = userData.role.trim().toLowerCase();
+          } else if (userData.user && typeof userData.user.role === 'string') {
+            role = userData.user.role.trim().toLowerCase();
+          }
+        }
+        if (role === 'admin') {
           setCurrentUser(userData);
+        } else if (userData) {
+          // If not admin, go to normal dashboard
+          navigate('/dashboard');
         } else {
+          // If userData is missing, go to login
           navigate('/login');
         }
-      } catch (err) {
+      } catch {
         navigate('/login');
       } finally {
         setIsLoadingUser(false);
@@ -180,16 +194,21 @@ const AdminDashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
   useEffect(() => {
     const fetchAggregates = async () => {
       try {
-        // Fetch total users
-        const usersRes = await fetch(`${API_BASE_URL}/users`);
+        const token = localStorage.getItem('token');
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        };
+        // Fetch total users (admin only, use /all endpoint)
+        const usersRes = await fetch(`${API_BASE_URL}/users/all`, { headers });
         let usersCount = null;
         if (usersRes.ok) {
           const users = await usersRes.json();
           usersCount = Array.isArray(users) ? users.length : 0;
         }
 
-        // Fetch total deposits (count of depositRequests)
-        const depositsRes = await fetch(`${API_BASE_URL}/depositRequests`);
+        // Fetch total deposits (admin only, use /all endpoint)
+        const depositsRes = await fetch(`${API_BASE_URL}/depositRequests/all`, { headers });
         let depositsCount = null;
         if (depositsRes.ok) {
           const deposits = await depositsRes.json();
@@ -198,7 +217,7 @@ const AdminDashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
 
         setTotalUsers(usersCount);
         setTotalDeposits(depositsCount);
-      } catch (err) {
+      } catch {
         setTotalUsers('N/A');
         setTotalDeposits('N/A');
       }
@@ -235,11 +254,13 @@ const AdminDashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
       <Navbar bg="light" variant="light" expand="lg" className="fixed-top shadow main-navbar" style={{ zIndex: 10 }}>
         <Container fluid>
           <Button
-            variant="outline-secondary"
+            variant="text-muted"
             className="d-lg-none me-2"
             onClick={handleOffcanvasToggle}
           >
-            <FontAwesomeIcon icon={faBars} />
+            <span className="material-symbols-outlined text-muted icon mt-1">
+              menu_open
+            </span>
           </Button>
           <Button
             variant="outline-secondary"
@@ -291,7 +312,7 @@ const AdminDashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
         placement="start"
         show={showOffcanvas}
         onHide={handleOffcanvasToggle}
-        className="bg-light d-lg-none shadow-sm"
+        className="bg-white d-lg-none shadow-sm"
         style={{ zIndex: 100000, width: '80vw' }}
       >
         <Offcanvas.Header closeButton>
@@ -309,19 +330,19 @@ const AdminDashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
 
       {/* Desktop Sidebar */}
       <div
-        className={`d-none d-lg-flex flex-column vh-100 bg-light shadow-sm desktop-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}
+        className={`d-none d-lg-flex flex-column vh-100 shadow-sm desktop-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}
         style={{
           width: isSidebarOpen ? '280px' : '0',
           position: 'fixed',
           top: 0,
           left: 0,
           zIndex: 1030,
+          background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)',
+          color: '#e2e8f0',
           overflowX: 'hidden',
           overflowY: 'auto',
           transition: 'width 0.3s ease-in-out, padding 0.3s ease-in-out',
-          paddingTop: '1rem',
-          paddingLeft: isSidebarOpen ? '0.5rem' : '0',
-          paddingRight: isSidebarOpen ? '0.5rem' : '0',
+          padding: isSidebarOpen ? '1rem 0.5rem' : '0',
           borderRight: isSidebarOpen ? '1px solid #dee2e6' : 'none'
         }}
       >

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Navbar, Nav, Offcanvas, Button, Image, NavDropdown, Collapse } from 'react-bootstrap';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { List as MenuIcon, PersonCircle, BoxArrowRight } from 'react-bootstrap-icons'; // Added BoxArrowRight
+import { PersonCircle, BoxArrowRight } from 'react-bootstrap-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserCircle, faCog, faHeartbeat, faSignOutAlt, faTachometerAlt, faExchangeAlt, faChartLine, faTags, faChevronDown, faChevronUp, faWallet, faMoneyBillWave, faHandHoldingUsd, } from '@fortawesome/free-solid-svg-icons';
 
@@ -14,7 +14,7 @@ const Sidebar = ({ show, navLinks, renderNavLinks, handleLogout, currentUserEmai
       position: 'fixed',
       top: 0,
       left: 0,
-      zIndex: 10000,
+      zIndex: 1000000,
       overflowX: 'hidden',
       transition: 'width 0.3s ease-in-out',
       padding: show ? '1rem' : '0',
@@ -97,7 +97,7 @@ const DashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
         as={NavLink}
         to={link.to}
         onClick={onClickHandler}
-        className={({ isActive }) => `dashboard-offcanvas-link ${isActive ? 'active-dashboard-link' : ''}`}
+        className={({ isActive }) => `dashboard-offcanvas-link ${isActive ? 'active-dashboard-link' : 'text-dark-100'}`}
         end={link.to === '.'}
       >
         {link.icon && <FontAwesomeIcon icon={link.icon} className="me-2" />}
@@ -122,19 +122,22 @@ const DashboardNav = ({ isSidebarOpen, toggleSidebar }) => {
       <Navbar bg="light" variant="light" expand="lg" className="fixed-top shadow main-navbar" style={{ zIndex: 1031 }}>
         <Container fluid>
           <Button
-            variant="outline-secondary"
-            className="d-lg-none me-2"
+            
+            className="d-lg-none me-2 bg-transparent border-0"
             onClick={handleOffcanvasToggle}
           >
-            <MenuIcon size={24} />
+            <span className="material-symbols-outlined text-muted icon mt-1">
+              menu_open
+            </span>
           </Button>
           <Button
-            variant="outline-secondary"
+            
             className="d-none d-lg-inline-block me-3"
             onClick={toggleSidebar}
           >
-            <MenuIcon size={24} />
-            <span className="visually-hidden">Toggle Sidebar</span> {/* Accessibility */}
+            <span className="material-symbols-outlined text-black icon">
+              menu_open
+            </span>
           </Button>
 
           <Nav className="ms-auto align-items-center">

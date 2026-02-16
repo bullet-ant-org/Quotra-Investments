@@ -26,6 +26,18 @@ svg.bi-person-circle {
   border: 3px solid #dee2e6;
 }
 
+.profile-main-image-placeholder {
+  width: 120px;
+  height: 120px;
+  color: #adb5bd; /* A muted color for the icon */
+  background-color: #e9ecef; /* A light grey background */
+  border: 3px solid #006aff;
+  border-radius: 50%; /* To make it circular */
+  /* The padding is to control the size of the icon inside the circle */
+  padding: 1.5rem;
+  box-sizing: border-box; /* Ensure padding is included in width/height */
+}
+
 .profile-avatar-badge { /* For the camera icon */
   position: absolute;
   bottom: 5px;
@@ -33,7 +45,6 @@ svg.bi-person-circle {
   background-color: white;
   border-radius: 50%;
   padding: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   line-height: 1; /* Ensures icon is centered if it has weird spacing */
 }
 /* Table styling */
@@ -41,7 +52,7 @@ svg.bi-person-circle {
 
 /* Modal rounded and shadow */
 .modal-content {
-  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10);
+  box-shadow: 0 0px 24px 0 rgba(0,0,0,0.10);
   border: none;
 }
 
@@ -71,7 +82,7 @@ svg.bi-person-circle {
 
 /* Optional: Soft background for the whole dashboard */
  .dashboard-container, body{
-  background: #f5f5f5 !important;
+  background: white !important;
 }
 .profile-avatar-badge .bi-camera {
   font-size: 1.2rem; /* Adjust icon size */

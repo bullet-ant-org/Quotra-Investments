@@ -1,13 +1,21 @@
 // c:\Users\Bullet Ant\Desktop\CODING\quotra appwrite\src\Admin\AdminLayouts\Users.jsx
 import React, { useState, useEffect } from 'react';
-import { Table, Pagination, Dropdown, Button, Image, Spinner, Alert, Card, Form, InputGroup } from 'react-bootstrap';
+import { Table, Pagination, Dropdown, Button, Image, Spinner, Alert, Card, Form, InputGroup, Accordion, Row, Col } from 'react-bootstrap';
 import { PersonCircle } from 'react-bootstrap-icons'; // Default avatar
 import { API_BASE_URL } from '../../utils/api'; // Import your API_BASE_URL
  import { differenceInDays, parseISO } from 'date-fns'; // Add this import
 
 const INACTIVE_DAYS = 14; // Same as AdminOverview.jsx
 
+import { useToast } from '../../context/ToastContext';
+
 const Users = () => {
+  const { addToast } = useToast();
+  // ...existing code...
+  // Example usage:
+  // addToast('User deleted successfully.', 'success');
+  // addToast('Error updating user.', 'error');
+  // Place addToast calls after any data mutation or error.
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,17 +29,18 @@ const Users = () => {
       setLoading(true);
       setError(null);
       try {
-        // Fetch all users from JSON server
-        const response = await fetch(`${API_BASE_URL}/users`);
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No authorization token found. Please log in again.');
+        // Fetch all users from admin-only endpoint
+        const response = await fetch(`${API_BASE_URL}/users/all`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to fetch users. Status: ${response.status}`);
         }
 
         const data = await response.json();
-        // Filter out the currently logged-in admin if you don't want them to appear in the list
-        // or handle self-modification purely on the client-side as done in handler functions.
-        // For simplicity, we'll fetch all and let client-side logic prevent self-modification.
         setUsers(data);
       } catch (err) {
         setError(err.message || 'Failed to fetch users.');
@@ -46,16 +55,19 @@ const Users = () => {
 
   const handleRoleChange = async (userId, newRole) => {
     if (loggedInAdmin && userId === loggedInAdmin.id) {
-      alert('You cannot change your own role from this interface.');
+      addToast('You cannot change your own role from this interface.', 'error');
       return;
     }
 
     try {
-      // PATCH request to JSON server to update the user's role
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+      // PATCH request to admin-only endpoint to update the user's role
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ role: newRole }),
       });
@@ -69,25 +81,28 @@ const Users = () => {
           user.id === userId ? { ...user, role: newRole } : user
         )
       );
-      alert(`User role updated to ${newRole}.`);
+      addToast(`User role updated to ${newRole}.`, 'success');
     } catch (err) {
       setError(err.message || 'Failed to update user role.');
       console.error('Role change error:', err);
-      alert(`Error updating role: ${err.message}`);
+      addToast(`Error updating role: ${err.message}`, 'error');
     }
   };
 
   const handleDeleteUser = async (userId, username) => {
     if (loggedInAdmin && userId === loggedInAdmin.id) {
-      alert('You cannot delete your own account.');
+      addToast('You cannot delete your own account.', 'error');
       return;
     }
 
     if (window.confirm(`Are you sure you want to delete the user "${username}"? This action cannot be undone.`)) {
       try {
-        // DELETE request to JSON server
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No authorization token found. Please log in again.');
+        // DELETE request to admin-only endpoint
         const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` },
         });
 
         if (!response.ok) {
@@ -105,11 +120,11 @@ const Users = () => {
           return updatedUsers;
         });
 
-        alert(`User "${username}" deleted successfully.`);
+        addToast(`User "${username}" deleted successfully.`, 'success');
       } catch (err) {
         setError(err.message || 'Failed to delete user.');
         console.error('Delete user error:', err);
-        alert(`Error deleting user: ${err.message}`);
+        addToast(`Error deleting user: ${err.message}`, 'error');
       }
     }
   };
@@ -158,8 +173,8 @@ const Users = () => {
 
   return (
     <div className="container-fluid mt-4">
-      <Card className="mb-4">
-        <Card.Header as="h5">User Management</Card.Header>
+      <Card className="mb-4 border-0">
+        <Card.Header as="h5" className='border-0'>User Management</Card.Header>
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <Card.Title className="mb-0">
@@ -170,6 +185,7 @@ const Users = () => {
               <InputGroup>
                 <Form.Control
                   type="search"
+                  className="totoform"
                   placeholder="Search by username or email..."
                   value={searchTerm}
                   onChange={handleSearchChange}
@@ -185,127 +201,119 @@ const Users = () => {
         </Card.Body>
       </Card>
       {currentUsers.length > 0 ? (
-        <>
-          <Table striped bordered hover responsive className="align-middle">
-            <thead>
-              <tr>
-                <th>Profile</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Current Role</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  style={
-                    isUserInactive(user)
-                      ? { background: 'rgba(255,0,0,0.07)' }
-                      : {}
-                  }
-                >
-                  <td>
-                    <Image
-                      src={user.profileImageUrl || user.profilePictureUrl || ''}
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'inline-block';
-                      }}
-                      roundedCircle
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        objectFit: 'cover',
-                        display: (user.profileImageUrl || user.profilePictureUrl) ? 'inline-block' : 'none',
-                      }}
-                      alt={user.username}
-                    />
-                    <PersonCircle
-                      size={40}
-                      style={{ display: !(user.profileImageUrl || user.profilePictureUrl) ? 'inline-block' : 'none' }}
-                      className="text-secondary"
-                    />
-                  </td>
-                  <td>{user.username}</td>
-                  <td>
-                    <a
-                      href={`mailto:${user.email}`}
-                      className="text-primary text-decoration-underline"
-                      title="Email user"
-                    >
-                      {user.email}
-                    </a>
-                  </td>
-                  <td>
-                    <span
-                      className={`badge bg-${
-                        user.role === 'admin'
-                          ? 'danger'
-                          : user.role === 'editor'
-                          ? 'warning'
-                          : 'secondary'
-                      }`}
-                    >
-                      {user.role || 'user'}
+        <div>
+          <Accordion flush>
+            {currentUsers.map((user, index) => (
+              <Accordion.Item eventKey={String(user._id || user.id || index)} key={user._id || user.id || index} className="mb-2 shadow-sm">
+                <Accordion.Header>
+                  <div className="d-flex align-items-center w-100">
+                    {(user.profileImageUrl || user.profilePictureUrl) ? (
+                      <Image
+                        src={user.profileImageUrl || user.profilePictureUrl}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = 'inline-block';
+                        }}
+                        roundedCircle
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          objectFit: 'cover',
+                          marginRight: '1rem'
+                        }}
+                        alt={user.username}
+                      />
+                    ) : (
+                      <PersonCircle
+                        size={40}
+                        style={{ marginRight: '1rem' }}
+                        className="text-secondary"
+                      />
+                    )}
+                    <span>
+                      <strong>{user.username}</strong> ({user.email})
                     </span>
-                  </td>
-                  <td>
-                    <Dropdown>
-                      <Dropdown.Toggle
-                        variant="outline-primary"
-                        size="sm"
-                        id={`dropdown-user-${user.id}`}
+                    <span className="ms-auto">
+                      <span
+                        className={`badge bg-${
+                          user.role === 'admin'
+                            ? 'danger'
+                            : user.role === 'editor'
+                            ? 'warning'
+                            : 'secondary'
+                        }`}
                       >
-                        Change Role
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        <Dropdown.Item
-                          onClick={() => handleRoleChange(user.id, 'admin')}
-                          disabled={
-                            user.role === 'admin' ||
-                            (loggedInAdmin && user.id === loggedInAdmin.id)
-                          }
+                        {user.role || 'user'}
+                      </span>
+                    </span>
+                  </div>
+                </Accordion.Header>
+                <Accordion.Body>
+                  <Row>
+                    <Col md={8}>
+                      <p><strong>User ID:</strong> {user.id}</p>
+                      <p><strong>Email:</strong> <a href={`mailto:${user.email}`} className="text-primary text-decoration-underline">{user.email}</a></p>
+                      <p>
+                        <strong>Last Active:</strong>{' '}
+                        {user.lastActive || user.lastLogin
+                          ? new Date(user.lastActive || user.lastLogin).toLocaleString()
+                          : 'Never'}
+                      </p>
+                      <p>
+                        <strong>Status:</strong>{' '}
+                        {isUserInactive(user) ? (
+                          <span className="text-danger">Inactive</span>
+                        ) : (
+                          <span className="text-success">Active</span>
+                        )}
+                      </p>
+                    </Col>
+                    <Col md={4} className="d-flex align-items-center justify-content-end">
+                      <Dropdown>
+                        <Dropdown.Toggle
+                          variant="outline-primary"
+                          size="sm"
+                          id={`dropdown-user-${user.id}`}
                         >
-                          Make Admin
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          onClick={() => handleRoleChange(user.id, 'editor')}
-                          disabled={
-                            user.role === 'editor' ||
-                            (loggedInAdmin && user.id === loggedInAdmin.id)
-                          }
-                        >
-                          Make Editor
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          onClick={() => handleRoleChange(user.id, 'user')}
-                          disabled={
-                            (!user.role || user.role === 'user') ||
-                            (loggedInAdmin && user.id === loggedInAdmin.id)
-                          }
-                        >
-                          Make User
-                        </Dropdown.Item>
-                        <Dropdown.Divider />
-                        <Dropdown.Item
-                          onClick={() => handleDeleteUser(user.id, user.username)}
-                          className="text-danger"
-                          disabled={loggedInAdmin && user.id === loggedInAdmin.id}
-                        >
-                          Delete User
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-
+                          Change Role
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          <Dropdown.Item
+                            onClick={() => handleRoleChange(user.id, 'admin')}
+                            disabled={
+                              user.role === 'admin' ||
+                              (loggedInAdmin && user.id === loggedInAdmin.id)
+                            }
+                          >
+                            Make Admin
+                          </Dropdown.Item>
+                          <Dropdown.Item
+                            onClick={() => handleRoleChange(user.id, 'user')}
+                            disabled={
+                              (!user.role || user.role === 'user') ||
+                              (loggedInAdmin && user.id === loggedInAdmin.id)
+                            }
+                          >
+                            Make User
+                          </Dropdown.Item>
+                          <Dropdown.Divider />
+                          <Dropdown.Item
+                            onClick={() => handleDeleteUser(user.id, user.username)}
+                            className="text-danger"
+                            disabled={loggedInAdmin && user.id === loggedInAdmin.id}
+                          >
+                            Delete User
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </Col>
+                  </Row>
+                </Accordion.Body>
+              </Accordion.Item>
+            ))}
+          </Accordion>
           {totalPages > 1 && (
-            <Pagination className="justify-content-center">
+            <Pagination className="justify-content-center mt-3">
               {Array.from({ length: totalPages }, (_, i) => (
                 <Pagination.Item
                   key={i + 1}
@@ -317,7 +325,7 @@ const Users = () => {
               ))}
             </Pagination>
           )}
-        </>
+        </div>
       ) : (
         !loading && (
           <Alert variant="info" className="mt-3">

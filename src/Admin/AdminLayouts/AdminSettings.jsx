@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Form, Button, Card, Spinner, Alert, Container, Row, Col } from 'react-bootstrap';
 import { API_BASE_URL } from '../../utils/api'; // Import your API_BASE_URL
+import { useToast } from '../../context/ToastContext'; // Import useToast
 
 const ADMIN_SETTINGS_ID = 'globalAdminSettings'; // Fixed ID for the single settings object
 
@@ -11,13 +12,12 @@ const CRYPTO_CONFIG = {
     usdt: { name: 'USDT', defaultBlockchain: 'TRC20 (Tron)' },
 };
 
-const initialCryptoState = { blockchain: '', walletAddress: '', isSaving: false, error: null, success: null };
-
 const AdminSettings = () => {
+    const { addToast } = useToast();
     const [cryptoSettings, setCryptoSettings] = useState({
-        bitcoin: { ...initialCryptoState },
-        ethereum: { ...initialCryptoState },
-        usdt: { ...initialCryptoState },
+        bitcoin: { blockchain: '', walletAddress: '', isSaving: false },
+        ethereum: { blockchain: '', walletAddress: '', isSaving: false },
+        usdt: { blockchain: '', walletAddress: '', isSaving: false },
     });
     const [globalIsLoading, setGlobalIsLoading] = useState(true);
     const [globalError, setGlobalError] = useState(null);
@@ -26,21 +26,25 @@ const AdminSettings = () => {
         setGlobalIsLoading(true);
         setGlobalError(null);
         try {
-            const response = await fetch(`${API_BASE_URL}/adminSettings/${ADMIN_SETTINGS_ID}`);
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            };
+            const response = await fetch(`${API_BASE_URL}/adminSettings/${ADMIN_SETTINGS_ID}`, { headers });
             if (response.ok) {
                 const data = await response.json();
                 setCryptoSettings({
-                    bitcoin: { ...initialCryptoState, ...(data.bitcoin || {}) },
-                    ethereum: { ...initialCryptoState, ...(data.ethereum || {}) },
-                    usdt: { ...initialCryptoState, ...(data.usdt || {}) },
+                    bitcoin: { isSaving: false, ...(data.bitcoin || {}) },
+                    ethereum: { isSaving: false, ...(data.ethereum || {}) },
+                    usdt: { isSaving: false, ...(data.usdt || {}) },
                 });
             } else if (response.status === 404) {
                 console.log('Admin settings not yet configured. Will be created on save.');
-                // Initialize with empty values, which is already done by initialCryptoState
                 setCryptoSettings({
-                    bitcoin: { ...initialCryptoState },
-                    ethereum: { ...initialCryptoState },
-                    usdt: { ...initialCryptoState },
+                    bitcoin: { blockchain: '', walletAddress: '', isSaving: false },
+                    ethereum: { blockchain: '', walletAddress: '', isSaving: false },
+                    usdt: { blockchain: '', walletAddress: '', isSaving: false },
                 });
             } else {
                 throw new Error(`Failed to fetch settings. Status: ${response.status}`);
@@ -51,7 +55,7 @@ const AdminSettings = () => {
         } finally {
             setGlobalIsLoading(false);
         }
-    }, []);
+    }, [addToast]);
 
     useEffect(() => {
         fetchSettings();
@@ -63,23 +67,26 @@ const AdminSettings = () => {
             [cryptoKey]: {
                 ...prev[cryptoKey],
                 [field]: value,
-                error: null, // Clear error/success on input change
-                success: null,
             }
         }));
     };
 
     const handleSaveCryptoSettings = async (e, cryptoKey) => {
         e.preventDefault();
-        setCryptoSettings(prev => ({
+        setCryptoSettings((prev) => ({
             ...prev,
-            [cryptoKey]: { ...prev[cryptoKey], isSaving: true, error: null, success: null }
+            [cryptoKey]: { ...prev[cryptoKey], isSaving: true },
         }));
 
         try {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            };
             let currentFullSettings = { id: ADMIN_SETTINGS_ID };
             try {
-                const fetchRes = await fetch(`${API_BASE_URL}/adminSettings/${ADMIN_SETTINGS_ID}`);
+                const fetchRes = await fetch(`${API_BASE_URL}/adminSettings/${ADMIN_SETTINGS_ID}`, { headers });
                 if (fetchRes.ok) {
                     currentFullSettings = await fetchRes.json();
                 } else if (fetchRes.status !== 404) {
@@ -102,7 +109,7 @@ const AdminSettings = () => {
 
             const response = await fetch(`${API_BASE_URL}/adminSettings/${ADMIN_SETTINGS_ID}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(payload),
             });
 
@@ -111,19 +118,15 @@ const AdminSettings = () => {
                 throw new Error(errorData.message || `Failed to save ${CRYPTO_CONFIG[cryptoKey].name} settings. Status: ${response.status}`);
             }
 
-            setCryptoSettings(prev => ({
-                ...prev,
-                [cryptoKey]: { ...prev[cryptoKey], isSaving: false, success: `${CRYPTO_CONFIG[cryptoKey].name} settings saved successfully!` }
-            }));
-
+            addToast(`${CRYPTO_CONFIG[cryptoKey].name} settings saved successfully!`, 'success');
         } catch (err) {
-            setCryptoSettings(prev => ({
-                ...prev,
-                [cryptoKey]: { ...prev[cryptoKey], isSaving: false, error: err.message || `An unexpected error occurred.` }
-            }));
+            addToast(err.message || `An unexpected error occurred.`, 'error');
             console.error(`Save ${cryptoKey} settings error:`, err);
         } finally {
-            // isSaving is set individually above
+            setCryptoSettings((prev) => ({
+                ...prev,
+                [cryptoKey]: { ...prev[cryptoKey], isSaving: false },
+            }));
         }
     };
 
@@ -139,21 +142,23 @@ const AdminSettings = () => {
         <Container fluid className="mt-4">
             <style>{`
                 .crypto-card {
+                    border: none;
                     transition: box-shadow 0.3s ease-in-out;
+                    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2) !important;
                 }
                 .crypto-card:hover {
-                    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2) !important;
+                    box-shadow: 8px 8px 10px rgba(0, 0, 0, 0.2) !important;
                 }
                 .btn-custom-pill {
                     background-color: white;
-                    color: var(--bs-primary); /* Make sure your primary color is accessible or replace with actual color */
-                    border: 2px solid white; /* Start with white border to maintain size on hover */
-                    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+                    color: #343434ff; /* Make sure your primary color is accessible or replace with actual color */
+                    border: 2px solid #343434ff; /* Start with white border to maintain size on hover */
+                    transition: all 0.5s ease;
                 }
                 .btn-custom-pill:hover, .btn-custom-pill:focus {
-                    background-color: transparent;
+                    background-color: #002cf1;
                     color: white;
-                    border: 2px solid white;
+                    border: 2px solid #002cf1;
                 }
                 .form-control-plaintext.text-white::placeholder { /* For better placeholder visibility on primary bg if needed */
                     color: rgba(255, 255, 255, 0.7);
@@ -169,27 +174,24 @@ const AdminSettings = () => {
                     font-weight: 500; /* Make labels a bit bolder */
                 }
             `}</style>
-            <h4 className="mb-4 fw-bold">Cryptocurrency Wallet Settings</h4>
+            <h4 className="mb-4 fw-bold py-3">Cryptocurrency Wallet Settings</h4>
             {globalError && <Alert variant="danger" onClose={() => setGlobalError(null)} dismissible>{globalError}</Alert>}
             <Row xs={1} md={1} lg={3} className="g-4">
                 {Object.keys(CRYPTO_CONFIG).map(cryptoKey => (
                     <Col key={cryptoKey}>
-                        <Card className="bg-primary text-white rounded-4 crypto-card h-100">
-                            <Card.Body className="d-flex flex-column p-4">
+                        <Card className="bg-white text-muted crypto-card h-100">
+                            <Card.Body className="d-flex flex-column p-2">
                                 <div className="d-flex justify-content-end">
                                     <h5 className="mb-3 fw-semibold">{CRYPTO_CONFIG[cryptoKey].name}</h5>
                                 </div>
 
                                 <Form onSubmit={(e) => handleSaveCryptoSettings(e, cryptoKey)}>
-                                    {cryptoSettings[cryptoKey]?.error && <Alert variant="danger" size="sm" className="mb-2 py-1 small" onClose={() => handleInputChange(cryptoKey, 'error', null)} dismissible>{cryptoSettings[cryptoKey].error}</Alert>}
-                                    {cryptoSettings[cryptoKey]?.success && <Alert variant="success" size="sm" className="mb-2 py-1 small" onClose={() => handleInputChange(cryptoKey, 'success', null)} dismissible>{cryptoSettings[cryptoKey].success}</Alert>}
-
                                     <Form.Group className="mb-3">
                                         <Form.Label htmlFor={`${cryptoKey}-blockchain`} className="small">Blockchain</Form.Label>
                                         <Form.Control
                                             type="text"
                                             id={`${cryptoKey}-blockchain`}
-                                            className="rounded-1 form-control-sm"
+                                            className=" form-control-sm py-2"
                                             value={cryptoSettings[cryptoKey]?.blockchain || ''}
                                             onChange={(e) => handleInputChange(cryptoKey, 'blockchain', e.target.value)}
                                             placeholder={`e.g., ${CRYPTO_CONFIG[cryptoKey].defaultBlockchain}`}
@@ -209,10 +211,10 @@ const AdminSettings = () => {
                                         />
                                     </Form.Group>
 
-                                    <div className="mt-auto pt-2">
+                                    <div className="mt-auto pt-2 my-2">
                                         <Button
                                             type="submit"
-                                            className="btn-custom-pill rounded-pill w-100 fw-medium"
+                                            className="btn-custom-pill w-100 fw-medium py-2"
                                             disabled={cryptoSettings[cryptoKey]?.isSaving}
                                         >
                                             {cryptoSettings[cryptoKey]?.isSaving ? (

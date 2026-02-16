@@ -1,188 +1,147 @@
+import { API_BASE_URL } from '../utils/api';
 // d:\quotra appwrite\src\layout\LoginPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import emailjs from 'emailjs-com'; // Import EmailJS
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useToast } from '../context/ToastContext';
 import NavbarComponent from './Navbar';
-import { API_BASE_URL, EMAILJS_SERVICE_ID, EMAILJS_OTP_TEMPLATE_ID, EMAILJS_PUBLIC_KEY } from '../utils/api'; // <-- Use your API base URL and EmailJS config from utils
 const LoginPage = () => {
   const [isLoginView, setIsLoginView] = useState(true);
   const navigate = useNavigate();
   const location = useLocation(); // Get current location
+  const { addToast } = useToast(); // Get the addToast function
 
   // State for form inputs
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [username, setUsername] = useState(''); // For signup
-  const [confirmPassword, setConfirmPassword] = useState(''); // For signup
-  const [error, setError] = useState(''); // State for displaying errors
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false); // State for loading indicator
-  // user state is primarily used for the session check/redirect logic
-  const [user, setUser] = useState(null); // Not strictly necessary if we always redirect, but good for potential future use
-
-  // Redirect if already logged in
-  useEffect(() => {
-    const storedUserJSON = localStorage.getItem('loggedInUser');
-    const tokenFromStorage = localStorage.getItem('token');
-    const currentPath = location.pathname;
-
-    if (storedUserJSON && tokenFromStorage) {
-      try {
-        const parsedUser = JSON.parse(storedUserJSON);
-
-        const fetchUserDataAndValidateSession = async () => {
-          try {
-            if (!parsedUser?.id) {
-              throw new Error('User ID not found in local session. Please log in again.');
-            }
-
-            // In a real app, you'd validate the token with your backend.
-            // For JSON server, we fetch the user by ID to simulate session validation.
-            const response = await fetch(`${API_BASE_URL}/users/${parsedUser.id}`);
-
-            if (!response.ok) {
-              // If user not found or other server error, session is invalid.
-              throw new Error('Session validation failed. User not found or server error.');
-            }
-
-            const userDataFromServer = await response.json();
-            // setUser(userDataFromServer); // Set user state if needed elsewhere
-
-            // Determine target path
-            const targetPath = userDataFromServer.role === 'admin' ? '/admin' : '/dashboard';
-
-            // Only redirect if not already on the target page or login page
-            if (currentPath !== targetPath && currentPath !== '/login' && currentPath !== '/signup') {
-              navigate(targetPath);
-            }
-          } catch (err) {
-            console.error('Error validating session/fetching user data:', err);
-            // Clear invalid session data
-            localStorage.removeItem('loggedInUser');
-            localStorage.removeItem('token');
-            localStorage.removeItem('userId');
-            // Optionally, navigate to login if session is truly invalid and not already there
-            if (currentPath !== '/login' && currentPath !== '/signup') {
-              // navigate('/login'); // Be cautious with auto-redirects to avoid loops
-            }
-          }
-        };
-
-        fetchUserDataAndValidateSession();
-      } catch (e) {
-        console.error('Error parsing stored user:', e);
-        localStorage.removeItem('loggedInUser');
-        localStorage.removeItem('token');
-        localStorage.removeItem('userId');
-      }
-    }
-  }, [navigate, location.pathname]); // Rerun on navigation
 
   // Toggle between login and signup views
   const toggleView = (e) => {
     e.preventDefault();
     setIsLoginView(!isLoginView);
-    setError('');
     setEmail('');
-    setPassword('');
     setUsername('');
+    setPassword('');
     setConfirmPassword('');
   };
 
   const handleInputChange = (setter) => (e) => {
     setter(e.target.value);
-    if (error) setError('');
-  };
-
-  // Function to send OTP email
-  const sendOtpEmail = async (userEmail, userName, otp, expiryTime) => {
-    const templateParams = {
-      to_email: userEmail, // Added for EmailJS
-      to_name: userName,   // Assuming your template uses {{to_name}}
-      passcode: otp, // Use 'passcode' to match your EmailJS template variable {{passcode}}
-      time: new Date(expiryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), // Format expiry time for the email
-      // Add other template variables here if needed, e.g., company_logo_url: 'YOUR_LOGO_URL'
-    };
-    try {
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_OTP_TEMPLATE_ID,
-        templateParams, // Use the template parameters object
-        EMAILJS_PUBLIC_KEY
-      );
-      console.log('OTP email sent successfully via EmailJS!');
-    } catch (emailError) {
-      console.error('Raw error from EmailJS in sendOtpEmail:', emailError);
-      const errorMessage = emailError?.text || emailError?.message || (typeof emailError === 'string' ? emailError : 'Unknown error sending email');
-      setError(`Signup successful, but failed to send OTP email: ${errorMessage}. Please check your EmailJS configuration and template variables.`);
-    }
   };
 
   // Handle login submission
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+
+    // Validation toasts
+    if (!email.trim()) {
+      addToast('Please enter your email address.', 'warning');
+      return;
+    }
+    if (!password.trim()) {
+      addToast('Please enter your password.', 'warning');
+      return;
+    }
+
     setLoading(true);
+    addToast('Signing you in...', 'info');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/users`);
+      const response = await fetch(`${API_BASE_URL}/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to fetch users. Server might be down.');
-      }
-      const users = await response.json();
-
-      const matchedUser = users.find(
-        (u) =>
-          (u.email && u.email.toLowerCase() === email.trim().toLowerCase() || u.username && u.username.toLowerCase() === email.trim().toLowerCase()) &&
-          u.password === password // IMPORTANT: HASH PASSWORDS IN PRODUCTION!
-      );
-
-      if (!matchedUser) {
-        throw new Error('Invalid email/username or password.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
       }
 
-      if (matchedUser.accountStatus === 'pending_verification') {
-        navigate('/verify-otp', { state: { email: matchedUser.email } });
-        // No need to throw an error here, the navigation handles it.
-        // setLoading(false) will be called in finally.
-        return; // Stop further execution
+      const data = await response.json();
+      const token = data.access_token || data.token;
+      const userId = data.user?.id || data._id;
+
+      if (!token || !userId) {
+        throw new Error('Authentication failed: Invalid response from server.');
       }
 
-      localStorage.setItem('loggedInUser', JSON.stringify(matchedUser));
-      localStorage.setItem('token', `mock-token-for-${matchedUser.id}`);
-      localStorage.setItem('userId', matchedUser.id);
+      // Store authentication data
+      localStorage.setItem('token', token);
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('loggedInUser', JSON.stringify(data));
+      localStorage.setItem('lastLogin', new Date().toISOString());
       window.dispatchEvent(new CustomEvent('authChange'));
 
-      // Log Login Activity (Client-Side Simulation for JSON Server)
+      addToast('Login successful! Welcome back to Quotra.', 'success');
+
+      // --- Log Login Activity ---
       try {
-        const simulatedIpAddress = `192.168.1.${Math.floor(Math.random() * 255)}`;
-        const activityLogResponse = await fetch(`${API_BASE_URL}/activities`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: matchedUser.id,
-            timestamp: new Date().toISOString(),
+        const ipResponse = await fetch('http://ip-api.com/json');
+        const ipData = await ipResponse.json();
+
+        if (ipData.status === 'success') {
+          const activityData = {
+            userId: userId,
             activityType: 'login',
-            details: { ipAddress: simulatedIpAddress, successful: true },
-          }),
-        });
-        if (!activityLogResponse.ok) {
-          console.warn('Failed to save login activity to JSON server.');
-        } else {
-          console.log(`Login activity logged for user ${matchedUser.id}`);
+            details: {
+              ipAddress: ipData.query,
+              city: ipData.city || 'Unknown',
+              country: ipData.country || 'Unknown',
+              regionName: ipData.regionName || 'Unknown',
+              status: ipData.status
+            },
+          };
+
+          await fetch(`${API_BASE_URL}/activities`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(activityData),
+          });
         }
       } catch (activityError) {
-        console.error("Error during client-side activity logging:", activityError);
+        console.warn('Activity logging failed, but login successful:', activityError);
+        // Don't show error toast for activity logging failure
       }
+      // --- End of Activity Logging ---
 
-      if (matchedUser.role === 'admin') {
-        navigate('/admin');
+      // Role-based navigation with feedback
+      const role = (data.role || (data.user && data.user.role) || '').trim().toLowerCase();
+      if (role === 'admin') {
+        addToast('Redirecting to admin dashboard...', 'info', 2000);
+        setTimeout(() => navigate('/admin'), 500);
       } else {
-        navigate('/dashboard');
+        addToast('Redirecting to your dashboard...', 'info', 2000);
+        setTimeout(() => navigate('/dashboard'), 500);
       }
 
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please try again.');
+
+      // Network/connection errors
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        addToast('Network error. Please check your connection and try again.', 'error');
+      }
+      // Server errors
+      else if (err.message.includes('500') || err.message.includes('502') || err.message.includes('503')) {
+        addToast('Server temporarily unavailable. Please try again in a few minutes.', 'error');
+      }
+      // Authentication errors
+      else if (err.message.includes('Invalid') || err.message.includes('incorrect') || err.message.includes('not found')) {
+        addToast('Invalid email or password. Please check your credentials.', 'error');
+      }
+      // Account related errors
+      else if (err.message.includes('suspended') || err.message.includes('banned') || err.message.includes('disabled')) {
+        addToast('Your account has been suspended. Please contact support.', 'error');
+      }
+      // Generic error
+      else {
+        addToast(err.message || 'Login failed. Please try again.', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -191,98 +150,122 @@ const LoginPage = () => {
   // Handle signup submission
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
 
+    // Client-side validation with specific toasts
+    if (!username.trim()) {
+      addToast('Please enter a username.', 'warning');
+      return;
+    }
+    if (!email.trim()) {
+      addToast('Please enter your email address.', 'warning');
+      return;
+    }
+    if (!password.trim()) {
+      addToast('Please enter a password.', 'warning');
+      return;
+    }
+    if (!confirmPassword.trim()) {
+      addToast('Please confirm your password.', 'warning');
+      return;
+    }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      setLoading(false);
+      addToast('Passwords do not match. Please check and try again.', 'error');
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
-      setLoading(false);
+      addToast('Password must be at least 6 characters long for security.', 'warning');
       return;
     }
-    if (!username.trim() || !email.trim() || !password.trim()) {
-      setError('All fields are required.');
-      setLoading(false);
+    if (username.length < 3) {
+      addToast('Username must be at least 3 characters long.', 'warning');
       return;
     }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      addToast('Please enter a valid email address.', 'warning');
+      return;
+    }
+
+    setLoading(true);
+    addToast('Creating your account...', 'info');
 
     try {
-      const usersResponse = await fetch(`${API_BASE_URL}/users`);
-      if (!usersResponse.ok) {
-        throw new Error('Failed to check existing users. Server might be down.');
-      }
-      const existingUsers = await usersResponse.json();
-
-      if (existingUsers.some((u) => u.email && u.email.toLowerCase() === email.trim().toLowerCase())) {
-        throw new Error('Email already in use. Please choose another.');
-      }
-      if (existingUsers.some((u) => u.username && u.username.toLowerCase() === username.trim().toLowerCase())) {
-        throw new Error('Username already taken. Please choose another.');
-      }
-
-      const newUserPartial = {
+      const newUser = {
         username: username.trim(),
-        email: email.trim(),
-        password: password, // IMPORTANT: Hash this password in a real application!
-        profileImageUrl: '',
-        role: 'user',
-        balance: 0,
-        totalIncome: 0,
-        totalBalance: 0,
-        // Initialize other fields as needed by your data model
-        accountStatus: 'pending_verification', // Set directly
+        email: email.trim().toLowerCase(), // Normalize email to lowercase
+        password,
       };
 
-      // POST the new user without OTP fields first to get an ID from json-server
-      const createResp = await fetch(`${API_BASE_URL}/users`, {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUserPartial),
+        body: JSON.stringify(newUser),
       });
 
-      if (!createResp.ok) {
-        const errorData = await createResp.json().catch(() => ({}));
-        throw new Error(errorData.message || `Signup failed with status: ${createResp.status}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+
+        // Handle specific signup errors
+        if (errorData.message?.includes('email') && errorData.message?.includes('already')) {
+          throw new Error('This email is already registered. Try logging in instead.');
+        }
+        if (errorData.message?.includes('username') && errorData.message?.includes('taken')) {
+          throw new Error('This username is already taken. Please choose another.');
+        }
+        if (errorData.message?.includes('password') && errorData.message?.includes('weak')) {
+          throw new Error('Password is too weak. Please use a stronger password.');
+        }
+
+        throw new Error(errorData.message || 'Account creation failed');
       }
 
-      const createdUserWithId = await createResp.json(); // User with ID from json-server
+      const data = await response.json();
 
-      // Generate OTP (In a real app, backend generates this and stores it hashed)
-      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpExpiryTime = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 minutes
-
-      // Now, update the user with OTP details using PUT
-      const userToUpdateWithOtp = {
-        ...createdUserWithId, // Contains all fields from newUserPartial + id
-        otp: generatedOtp, // Store plain for json-server simulation; HASH IN REAL BACKEND
-        otpExpires: otpExpiryTime.toISOString(),
-        // accountStatus is already 'pending_verification' from newUserPartial
-      };
-
-      const updateUserResp = await fetch(`${API_BASE_URL}/users/${createdUserWithId.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userToUpdateWithOtp),
-      });
-
-      if (!updateUserResp.ok) {
-        // Attempt to roll back user creation if OTP update fails (best effort for json-server)
-        await fetch(`${API_BASE_URL}/users/${createdUserWithId.id}`, { method: 'DELETE' });
-        throw new Error('Failed to save OTP details for the new user. Signup rolled back.');
+      // Store authentication data
+      if (data.access_token && data.user && data.user.id) {
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('userId', data.user.id);
+      } else {
+        // fallback for old backend
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data._id);
       }
+      localStorage.setItem('loggedInUser', JSON.stringify(data));
+      localStorage.setItem('lastLogin', new Date().toISOString());
+      window.dispatchEvent(new CustomEvent('authChange'));
 
-      await sendOtpEmail(createdUserWithId.email, createdUserWithId.username, generatedOtp, otpExpiryTime); // <-- FIX: Use otpExpiryTime
+      addToast('Account created successfully! Welcome to Quotra.', 'success');
+      addToast('Redirecting to your dashboard...', 'info', 2000);
 
-      alert('Signup successful! Please check your email for an OTP to verify your account.');
-      navigate('/verify-otp', { state: { email: createdUserWithId.email } });
+      setTimeout(() => navigate('/dashboard'), 500);
 
     } catch (err) {
       console.error('Signup error:', err);
-      setError(err.message || 'Signup failed. Please try again.');
+
+      // Network/connection errors
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        addToast('Network error. Please check your connection and try again.', 'error');
+      }
+      // Server errors
+      else if (err.message.includes('500') || err.message.includes('502') || err.message.includes('503')) {
+        addToast('Server temporarily unavailable. Please try again in a few minutes.', 'error');
+      }
+      // Specific validation errors
+      else if (err.message.includes('email') && err.message.includes('already')) {
+        addToast('This email is already registered. Please try logging in or use a different email.', 'error');
+      }
+      else if (err.message.includes('username') && err.message.includes('taken')) {
+        addToast('This username is already taken. Please choose a different username.', 'error');
+      }
+      else if (err.message.includes('password') && err.message.includes('weak')) {
+        addToast('Password is too weak. Please use a stronger password with numbers and symbols.', 'warning');
+      }
+      // Generic error
+      else {
+        addToast(err.message || 'Account creation failed. Please try again.', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -323,10 +306,10 @@ const LoginPage = () => {
   }, [navigate, location.pathname]); // Rerun on navigation
 
   return (
-    <div className="Loginpage" style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+    <div className="Loginpage" style={{ minHeight: '100vh', backgroundColor: '#fff' }}>
       <NavbarComponent />
       <div className="container d-flex justify-content-center align-items-center my-4">
-        <div className="form-container bg-white p-4 p-md-5 shadow-lg col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5" style={{ borderRadius: '0.5rem' }}>
+        <div className="form-container bg-white p-4 p-md-5 col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5" style={{ borderRadius: '0.5rem' }}>
           <div className="row align-items-center">
             {/* Removed all alert components */}
             {loading && (
@@ -340,14 +323,14 @@ const LoginPage = () => {
             {isLoginView ? (
               <form onSubmit={handleLoginSubmit} className="w-100">
                 <div className="header-text mb-4 text-primary text-end">
-                  <h2>Hello, Again!</h2>
-                  <p className="text-muted">Login Now, or click the signup button to Signup</p>
+                  <h2>Hello</h2>
+                  <p className="text-muted">Login with your email</p>
                 </div>
                 <div className="input-group mb-3">
                   <input
                     type="text"
-                    className="form-control form-control-lg bg-light fs-6"
-                    placeholder="Email address or Username"
+                    className="form-control form-control-lg bg-light fs-6 totoform"
+                    placeholder="Email"
                     value={email}
                     onChange={handleInputChange(setEmail)}
                     required
@@ -355,10 +338,10 @@ const LoginPage = () => {
                     style={{ borderRadius: '0.25rem' }}
                   />
                 </div>
-                <div className="input-group mb-1">
+                <div className="input-group mb-3">
                   <input
                     type="password"
-                    className="form-control form-control-lg bg-light fs-6"
+                    className="form-control form-control-lg bg-light fs-6 totoform"
                     placeholder="Password"
                     value={password}
                     onChange={handleInputChange(setPassword)}
@@ -367,19 +350,8 @@ const LoginPage = () => {
                     style={{ borderRadius: '0.25rem' }}
                   />
                 </div>
-                <div className="input-group mb-5 d-flex justify-content-between">
-                  <div className="form-check">
-                    <input type="checkbox" className="form-check-input" id="formCheck" disabled={loading} />
-                    <label htmlFor="formCheck" className="form-check-label text-secondary">
-                      <small>Remember Me</small>
-                    </label>
-                  </div>
-                  <div className="forgot text-secondary">
-                   
-                  </div>
-                </div>
                 <div className="input-group mb-3">
-                  <button type="submit" className="btn btn-lg btn-primary w-100 fs-6" disabled={loading} style={{ borderRadius: '0.25rem' }}>
+                  <button type="submit" className="btn btn-lg btn-primary w-100 fs-6 totobuttom" disabled={loading} style={{ borderRadius: '0.25rem' }}>
                     Login
                   </button>
                 </div>
@@ -393,12 +365,12 @@ const LoginPage = () => {
               <form onSubmit={handleSignupSubmit} className="w-100">
                 <div className="header-text mb-4">
                   <h2 className="text-primary text-end">Create Account</h2>
-                  <p className="text-muted text-end">Let's get you started.</p>
+                  <p className="text-muted text-end">Sign up with your email and username.</p>
                 </div>
                 <div className="input-group mb-3">
                   <input
                     type="text"
-                    className="form-control form-control-lg bg-light fs-6"
+                    className="form-control form-control-lg bg-light fs-6 totoform"
                     placeholder="Username"
                     value={username}
                     onChange={handleInputChange(setUsername)}
@@ -410,7 +382,7 @@ const LoginPage = () => {
                 <div className="input-group mb-3">
                   <input
                     type="email"
-                    className="form-control form-control-lg bg-light fs-6"
+                    className="form-control form-control-lg bg-light fs-6 totoform"
                     placeholder="Email address"
                     value={email}
                     onChange={handleInputChange(setEmail)}
@@ -422,7 +394,7 @@ const LoginPage = () => {
                 <div className="input-group mb-3">
                   <input
                     type="password"
-                    className="form-control form-control-lg bg-light fs-6"
+                    className="form-control form-control-lg bg-light fs-6 totoform"
                     placeholder="Password"
                     value={password}
                     onChange={handleInputChange(setPassword)}
@@ -431,10 +403,10 @@ const LoginPage = () => {
                     style={{ borderRadius: '0.25rem' }}
                   />
                 </div>
-                <div className="input-group mb-4">
+                <div className="input-group mb-3">
                   <input
                     type="password"
-                    className="form-control form-control-lg bg-light fs-6"
+                    className="form-control form-control-lg bg-light fs-6 totoform"
                     placeholder="Confirm Password"
                     value={confirmPassword}
                     onChange={handleInputChange(setConfirmPassword)}

@@ -10,7 +10,8 @@ import {
 
 const LoanTypesPage = () => {
   const userId = localStorage.getItem('userId');
-const userEmail = localStorage.getItem('userEmail');
+  const userEmail = localStorage.getItem('userEmail');
+  const token = localStorage.getItem('token');
   const [loanTypes, setLoanTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,29 +39,42 @@ const userEmail = localStorage.getItem('userEmail');
   // Admin settings state
   const [adminSettings, setAdminSettings] = useState(null);
 
+
   // Fetch adminSettings from backend
   useEffect(() => {
-    fetch(`${API_BASE_URL}/adminSettings`)
-      .then(res => res.json())
-      .then(data => {
-        // If it's an array, use the first object (as in your endpoint example)
+    const fetchAdminSettings = async () => {
+      try {
+        // Fetch from the now public '/view' route
+        const res = await fetch(`${API_BASE_URL}/adminSettings/view`);
+        if (!res.ok) throw new Error('Failed to fetch admin settings');
+        const data = await res.json();
         setAdminSettings(Array.isArray(data) ? data[0] : data);
-      })
-      .catch(() => setAdminSettings(null));
-  }, []);
+      } catch (err) {
+        setAdminSettings(null);
+      }
+    };
+    fetchAdminSettings();
+  }, [token]);
 
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    fetch(`${API_BASE_URL}/loanTypes`)
-      .then((res) => {
+    const fetchLoanTypes = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/loanTypes`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
         if (!res.ok) throw new Error(`Failed to fetch loan types. Status: ${res.status}`);
-        return res.json();
-      })
-      .then((data) => setLoanTypes(data))
-      .catch((err) => setError(err.message || 'Failed to load loan types. Please try again later.'))
-      .finally(() => setIsLoading(false));
-  }, []);
+        const data = await res.json();
+        setLoanTypes(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError(err.message || 'Failed to load loan types. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchLoanTypes();
+  }, [token]);
 
   // --- Modal logic ---
   const handleApplyForLoan = (loanType) => {
@@ -133,52 +147,44 @@ const userEmail = localStorage.getItem('userEmail');
   };
 
   // --- Payment Modal ---
-  const handlePayment = async () => {
+  const handleOrderSubmit = async () => {
     // Compile all form data
     const loanOrder = {
       loanTypeId: selectedLoan?.id,
       loanTypeName: selectedLoan?.name,
       quota: selectedLoan?.quota,
-      amount: selectedLoan?.quota, // Amount equals quota
+      amount: selectedLoan?.quota,
       applicationFee: selectedLoan?.applicationFee,
       term: selectedLoan?.term,
       interest: selectedLoan?.interestRate,
-      status: 'pending', // Default status
+      status: 'pending',
       homeAddress,
       city,
       state: stateVal,
       country,
       driversLicense: driversLicense ? driversLicense.name : '',
       idCard: idCard ? idCard.name : '',
-      faceImage: !!faceImage, // Just a flag, or you can send the base64 if needed
+      faceImage: !!faceImage,
       chosenCrypto,
       paymentWallet: adminSettings?.[chosenCrypto]?.walletAddress || '',
       paymentBlockchain: adminSettings?.[chosenCrypto]?.blockchain || '',
       createdAt: new Date().toISOString(),
-      userId: userId || '', // Attach userId
-      userEmail: userEmail || '', // Attach userEmail
+      userId: userId || '',
+      userEmail: userEmail || '',
     };
 
     try {
       await fetch(`${API_BASE_URL}/loanOrders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(loanOrder),
       });
-      // Close all modals and reset modal states
-      setShowPaymentModal(false);
-      setShowModal(false);
-      setSelectedLoan(null);
-      setCheckoutStep('form');
-      setHomeAddress('');
-      setCity('');
-      setStateVal('');
-      setCountry('');
-      setDriversLicense(null);
-      setIdCard(null);
-      setFaceImage(null);
-      setChosenCrypto('');
     } catch (err) {
+      // Optionally handle error
+    } finally {
       setShowPaymentModal(false);
       setShowModal(false);
       setSelectedLoan(null);
@@ -264,7 +270,7 @@ const userEmail = localStorage.getItem('userEmail');
           variant="success"
           className="w-100 fw-bold"
           style={{ borderRadius: 30 }}
-          onClick={handlePayment}
+          onClick={handleOrderSubmit}
         >
           I Have Made The Payment
         </Button>
@@ -402,7 +408,7 @@ const userEmail = localStorage.getItem('userEmail');
         )}
         <div className="mt-3">
           {loanTypes.length === 0 && !isLoading && !error && (
-            <Alert variant="info" className="text-center">No loan types are currently available. Please check back later.</Alert>
+            <Alert variant="info" className="text-center">No loan Options are currently available. Please check back later.</Alert>
           )}
           {loanTypes.map((loan) => (
             <div

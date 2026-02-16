@@ -35,7 +35,7 @@ const Checkout = () => {
     if (error) setError(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     const amount = parseFloat(investmentAmount);
@@ -47,17 +47,45 @@ const Checkout = () => {
 
     setIsSubmitting(true);
 
-    // Navigate to the main CheckoutPage.jsx (assuming it's routed at /dashboard/checkout)
-    // The main CheckoutPage.jsx will handle fetching the admin wallet and displaying payment details.
-    navigate('/dashboard/checkout', { // Or your designated route for CheckoutPage.jsx
-      state: {
-        amount: amount,
+    try {
+      // Optionally, send the investment order to the backend
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      };
+      const body = JSON.stringify({
+        userId,
+        amount,
         type: 'custom_investment',
         itemName: 'Custom Investment',
-        // You can add more details if needed, e.g., a description or reference
-      },
-    });
-    // No need to setIsSubmitting(false) here as we are navigating away.
+      });
+      // POST to backend (adjust endpoint as needed)
+      const response = await fetch(`${API_BASE_URL}/assetorders`, {
+        method: 'POST',
+        headers,
+        body,
+      });
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(errorBody.message || 'Failed to create investment order.');
+      }
+      const order = await response.json();
+
+      // Navigate to payment details page with order info
+      navigate('/dashboard/checkout', {
+        state: {
+          amount: order.amount,
+          type: order.type,
+          itemName: order.itemName,
+          orderId: order._id,
+        },
+      });
+    } catch (err) {
+      setError(err.message || 'An error occurred while creating your investment order.');
+      setIsSubmitting(false);
+    }
   };
 
   return (

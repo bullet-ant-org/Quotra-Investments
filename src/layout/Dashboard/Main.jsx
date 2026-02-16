@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWallet, faArrowUp, faArrowDown, faCoins, faChartLine, faPiggyBank } from '@fortawesome/free-solid-svg-icons';
 import { API_BASE_URL } from '../../utils/api'; // Import API_BASE_URL
 
 // Helper to format currency
@@ -10,13 +12,21 @@ const formatCurrency = (amount) => {
   return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 };
 
-const Dashboard = ({ userId }) => { // Accept userId prop
+const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('User not authenticated. Please log in.');
+        setIsLoading(false);
+        return;
+      }
+
+      const userId = localStorage.getItem('userId');
       if (!userId) {
         setError('User ID not available.');
         setIsLoading(false);
@@ -25,12 +35,18 @@ const Dashboard = ({ userId }) => { // Accept userId prop
 
       setIsLoading(true);
       setError(null);
+
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+
       try {
         // Fetch user data, deposit requests, and withdrawal requests in parallel
         const [userRes, depositRequestsRes, withdrawalRequestsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/users/${userId}`),
-          fetch(`${API_BASE_URL}/depositRequests?userId=${userId}&status=confirmed`), // Filter by userId and status
-          fetch(`${API_BASE_URL}/withdrawalRequests?userId=${userId}&status=confirmed`) // Filter by userId and status
+          fetch(`${API_BASE_URL}/users/profile`, { headers }),
+          fetch(`${API_BASE_URL}/depositRequests?status=confirmed`, { headers }),
+          fetch(`${API_BASE_URL}/withdrawalRequests?status=confirmed`, { headers })
         ]);
 
         if (!userRes.ok) {
@@ -68,11 +84,11 @@ const Dashboard = ({ userId }) => { // Accept userId prop
 
         // Map fetched data to the state structure
         setUserData({
-          fullName: userData.username || 'User',
+          fullName: userData.fullName || userData.username || 'User',
           clientWalletAddress: userData.withdrawalAccount || null,
           availableBalance: userData.balance || 0,
-          allTimeAvailableBalance: userData.totalIncome || 0, // This might need adjustment based on your logic
-          totalDeposit: totalConfirmedDeposits, // Sum of confirmed deposits
+          allTimeAvailableBalance: userData.balance || 0, // Using balance as totalIncome is not available
+          totalDeposit: totalConfirmedDeposits,
           lastDeposit: lastDepositAmount,       // Amount of the last confirmed deposit
           totalWithdraw: totalConfirmedWithdrawals, // Sum of confirmed withdrawals
           lastWithdrawal: lastWithdrawalAmount,   // Amount of the last confirmed withdrawal
@@ -87,7 +103,7 @@ const Dashboard = ({ userId }) => { // Accept userId prop
     };
 
     fetchUserData();
-  }, [userId]); // Re-run effect if userId changes
+  }, []); // Run once on mount
 
   const cardData = [
     {
@@ -114,20 +130,14 @@ const Dashboard = ({ userId }) => { // Accept userId prop
     },
   ];
 
-  const handleWithdrawClick = () => { // This function definition was immediately after the extra brace
-    // Placeholder for withdrawal logic
-    // You'll likely need to navigate or trigger a modal/component for withdrawal
-    console.log('Withdraw clicked');
-    // Example: navigate('/withdraw'); // You would need to import useNavigate for this
-  };
   const renderCards = () =>
     cardData.map((card, index) => (
-      <Col key={index} md={4}>
-        <Card className={`h-100`}>
+      <Col key={index} md={4} className='mb-3 mb-lg-0'>
+        <Card className={`h-100 home-cards`}>
           <Card.Body>
             <Card.Title>{card.title}</Card.Title>
             {/* For Deposit/Withdrawal, the main value is 'Last', and 'All Time' is the total */}
-            <Card.Text className="fw-bold fs-4">
+            <Card.Text className="fw-bold fs-2">
               {card.isDeposit || card.isWithdrawal ? `Last: ${formatCurrency(card.value || 0)}` : formatCurrency(card.value || 0)}
             </Card.Text>
             <small>All Time: {formatCurrency(card.allTimeValue || 0)}</small>
@@ -172,70 +182,28 @@ const Dashboard = ({ userId }) => { // Accept userId prop
           <p>Here is a summary of your account. Have fun!</p>
         </Col>
         <Col md={4} className="text-end">
-          <Button as={Link} to="/dashboard/pricing" variant="primary" className="me-2">
+          <Button as={Link} to="/dashboard/pricing" className="me-2 totobutton">
             Invest & Earn
           </Button>
-          <Button as={Link} to="/dashboard/deposit" variant="success" className="me-2">
+          <Button as={Link} to="/dashboard/deposit" className="me-2 button-green">
             Deposit
           </Button>
           
         </Col>
       </Row>
 
-      {/* Wallet Address Section */}
-      <Alert variant="info" className="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-        {userData?.clientWalletAddress ? (
-          <div className="d-flex flex-column flex-md-row align-items-md-center w-100" style={{ gap: '1rem' }}>
-            <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
-              <span className="fw-bold">Wallet Address:</span>
-              <span className="ms-2">{userData.clientWalletAddress}</span>
-            </div>
-            <Button
-              as={Link}
-              to="/dashboard/withdrawal"
-              variant="warning"
-              className="mt-2 mt-md-0 "
-              style={{ whiteSpace: 'nowrap', flexShrink: 0}}
-            >
-              Withdraw
-            </Button>
-          </div>
-        ) : (
-          <span>Add a wallet address to protect your funds further.</span>
-        )}
-      </Alert>
+      
 
       {/* Statistics Cards Section */}
       <Row className="mb-4">
         {userData && renderCards()} {/* Only render cards if userData is available */}
       </Row>
 
-      {/* You can add other sections here based on user data, e.g., active investments */}
-      {/* Example: */}
-      {/* {userData?.activeInvestment && (
-          <Card className="mb-4">
-              <Card.Header>Active Investment</Card.Header>
-              <Card.Body>
-                  <p>Plan: {userData.activeInvestment.planName}</p>
-                  <p>Amount: {formatCurrency(userData.activeInvestment.amount)}</p>
-                  // Add more details as needed
-              </Card.Body>
-          </Card>
-      )} */}
+
 
     </Container>
   );
 
 }
 
-// The Main component is typically used to wrap the Dashboard and pass props like userId
-// In a real app, userId would likely come from authentication context
-const Main = () => {
-    // Example: Get userId from localStorage (replace with secure method)
-    const userId = localStorage.getItem('userId');
-
-    // You might pass userId and other props to the Dashboard component
-    return <Dashboard userId={userId} />;
-};
-
-export default Main;
+export default Dashboard;

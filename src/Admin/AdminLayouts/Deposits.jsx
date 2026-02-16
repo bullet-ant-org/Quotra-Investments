@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useToast } from '../../context/ToastContext';
 import { Container, Row, Col, Card, Spinner, Alert, Button, Badge } from 'react-bootstrap';
 import { format } from 'date-fns';
 import { API_BASE_URL } from '../../utils/api';
@@ -24,6 +25,7 @@ const statusColor = (status) => {
 };
 
 const Deposits = () => {
+  const { addToast } = useToast();
   const [deposits, setDeposits] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,8 +38,14 @@ const Deposits = () => {
     setError(null);
     setSuccess('');
     try {
-      // Fetch all users for mapping userId to username/email
-      const usersRes = await fetch(`${API_BASE_URL}/users`);
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+
+      // Fetch all users for mapping userId to username/email (admin-only endpoint)
+      const usersRes = await fetch(`${API_BASE_URL}/users/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!usersRes.ok) throw new Error('Failed to fetch users');
       const users = await usersRes.json();
       const usersMapTemp = {};
@@ -46,8 +54,10 @@ const Deposits = () => {
       });
       setUsersMap(usersMapTemp);
 
-      // Fetch all deposit requests
-      const depositsRes = await fetch(`${API_BASE_URL}/depositRequests`);
+      // Fetch all deposit requests (admin-only endpoint)
+      const depositsRes = await fetch(`${API_BASE_URL}/depositRequests/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!depositsRes.ok) throw new Error('Failed to fetch deposit requests');
       const depositsData = await depositsRes.json();
 
@@ -57,10 +67,11 @@ const Deposits = () => {
     } catch (err) {
       setError(err.message || 'An unknown error occurred while fetching deposits.');
       setDeposits([]);
+      addToast('Error fetching deposits.', 'error');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addToast]);
 
   useEffect(() => {
     fetchDeposits();
@@ -73,22 +84,27 @@ const Deposits = () => {
     setSuccess('');
     const userEmail = usersMap[deposit.userId]?.email;
     try {
-      // 1. Update deposit status
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+
+      // 1. Update deposit status (admin-only)
       const res = await fetch(`${API_BASE_URL}/depositRequests/${deposit.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: 'confirmed' }),
       });
       if (!res.ok) throw new Error('Failed to approve deposit.');
 
-      // 2. Update user balance
-      const userRes = await fetch(`${API_BASE_URL}/users/${deposit.userId}`);
+      // 2. Update user balance (admin-only)
+      const userRes = await fetch(`${API_BASE_URL}/users/${deposit.userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!userRes.ok) throw new Error('Failed to fetch user for balance update.');
       const user = await userRes.json();
       const newBalance = (user.balance || 0) + parseFloat(deposit.amount);
       const balRes = await fetch(`${API_BASE_URL}/users/${deposit.userId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ balance: newBalance }),
       });
       if (!balRes.ok) throw new Error('Failed to update user balance.');
@@ -107,9 +123,11 @@ const Deposits = () => {
       }
 
       setSuccess(`Deposit for ${usersMap[deposit.userId]?.username || deposit.userId} approved and balance updated.`);
+      addToast('Deposit approved!', 'success');
       fetchDeposits();
     } catch (err) {
       setError(err.message);
+      addToast(err.message, 'error');
     } finally {
       setConfirmingId(null);
     }
@@ -122,16 +140,20 @@ const Deposits = () => {
     setError('');
     setSuccess('');
     try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
       const res = await fetch(`${API_BASE_URL}/depositRequests/${deposit.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: 'cancelled' }),
       });
       if (!res.ok) throw new Error('Failed to cancel deposit.');
       setSuccess(`Deposit for ${usersMap[deposit.userId]?.username || deposit.userId} cancelled.`);
+      addToast('Deposit cancelled.', 'success');
       fetchDeposits();
     } catch (err) {
       setError(err.message);
+      addToast(err.message, 'error');
     } finally {
       setConfirmingId(null);
     }

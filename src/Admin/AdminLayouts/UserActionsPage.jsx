@@ -5,7 +5,15 @@ import { API_BASE_URL } from '../../utils/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faPlusCircle, faGift, faDollarSign, faTimes } from '@fortawesome/free-solid-svg-icons'; // Added faDollarSign, faTimes
 
+import { useToast } from '../../context/ToastContext';
+
 const UserActionsPage = () => {
+  const { addToast } = useToast();
+  // ...existing code...
+  // Example usage:
+  // addToast('Action completed successfully.', 'success');
+  // addToast('Error performing action.', 'error');
+  // Place addToast calls after any data mutation or error.
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,7 +46,11 @@ const UserActionsPage = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_BASE_URL}/users`);
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No authorization token found. Please log in again.');
+        const response = await fetch(`${API_BASE_URL}/users/all`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch users');
         }
@@ -98,8 +110,12 @@ const UserActionsPage = () => {
     }
 
     try {
-      // Fetch current user data to get the current balance
-      const userRes = await fetch(`${API_BASE_URL}/users/${userId}`);
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+      // Fetch current user data to get the current balance (admin-only)
+      const userRes = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!userRes.ok) {
         throw new Error(`Failed to fetch user data for ${userName}.`);
       }
@@ -107,10 +123,10 @@ const UserActionsPage = () => {
       const currentBalance = parseFloat(userData.balance) || 0;
       const newBalance = currentBalance + amountValue;
 
-      // Update user's balance
+      // Update user's balance (admin-only)
       const updateUserBalanceRes = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ balance: newBalance }),
       });
 
@@ -118,7 +134,7 @@ const UserActionsPage = () => {
         throw new Error(`Failed to update balance for ${userName}.`);
       }
 
-      // If it's a bonus, also record it to a /bonuses endpoint
+      // If it's a bonus, also record it to a /bonuses endpoint (admin-only)
       if (actionType === 'bonus') {
         const bonusRecord = {
           userId: userId,
@@ -127,17 +143,14 @@ const UserActionsPage = () => {
           reason: reasonText, // Use the reason from the input
           dateAdded: new Date().toISOString(),
         };
-        const bonusRes = await fetch(`${API_BASE_URL}/bonuses`, { // Assuming a /bonuses endpoint
+        const bonusRes = await fetch(`${API_BASE_URL}/bonuses`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(bonusRecord),
         });
         if (!bonusRes.ok) {
           // Even if bonus logging fails, the balance update might have succeeded.
-          // You might want to handle this more gracefully, e.g., by trying to revert the balance update or logging the error.
           console.error(`Failed to record bonus for ${userName}, but balance was updated.`);
-          // For simplicity, we'll proceed but you might want more robust error handling here.
-          // throw new Error(`Failed to record bonus for ${userName}.`);
         }
         alert(`Bonus of $${amountValue.toFixed(2)} for ${userName} added and balance updated.`);
       } else if (actionType === 'deposit') {
@@ -147,9 +160,10 @@ const UserActionsPage = () => {
         alert(`Deposit of $${amountValue.toFixed(2)} for ${userName} added and balance updated.`);
       }
 
-      // Successfully updated, now refetch users to update the list display
-      // (or you could update the specific user in the local 'users' state)
-      const updatedUsersResponse = await fetch(`${API_BASE_URL}/users`);
+      // Successfully updated, now refetch users to update the list display (admin-only)
+      const updatedUsersResponse = await fetch(`${API_BASE_URL}/users/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (updatedUsersResponse.ok) {
         const updatedUsersData = await updatedUsersResponse.json();
         setUsers(updatedUsersData);
@@ -235,6 +249,7 @@ const UserActionsPage = () => {
                     </Col>
                     <Col md={4} className="d-flex align-items-center justify-content-end">
                       <Button
+                      className='totobutton'
                         variant={actionType === 'deposit' ? "success" : "info"}
                         onClick={() => openActionModal(user)}
                       >
@@ -299,7 +314,7 @@ const UserActionsPage = () => {
                 value={actionReason}
                 onChange={(e) => setActionReason(e.target.value)}
                 required // Make reason required for bonus
-                className="rounded-1" // Use rounded-1 for textarea
+                className="rounded-1 totoform" // Use rounded-1 for textarea
               />
             </Form.Group>
           )}
@@ -308,13 +323,7 @@ const UserActionsPage = () => {
           <Button 
             variant="primary" 
             onClick={handleConfirmAction} 
-            className="w-100 text-white fw-bold"
-            style={{
-              backgroundColor: '#0d6efd', // Your special blue
-              borderColor: '#0d6efd', // Your special blue
-              borderRadius: '50rem', // Pill shape
-              padding: '0.6rem 1.5rem'
-            }}
+            className="totobutton"
           >
             {isSubmittingAction ? (
               <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" /> Processing...</>

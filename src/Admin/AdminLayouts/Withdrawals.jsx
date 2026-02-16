@@ -4,6 +4,7 @@ import { Container, Row, Col, Card, Spinner, Alert, Button, Badge } from 'react-
 import { format } from 'date-fns';
 import { API_BASE_URL } from '../../utils/api';
 import { sendTransactionEmail } from '../../utils/emailHelper'; // Import the new helper
+import { useToast } from '../../context/ToastContext';
 
 // Helper to format currency
 const formatCurrency = (amount) => {
@@ -31,14 +32,19 @@ const Withdrawals = () => {
   const [success, setSuccess] = useState('');
   const [confirmingId, setConfirmingId] = useState(null);
   const [usersMap, setUsersMap] = useState({});
+  const { addToast } = useToast();
 
   const fetchWithdrawals = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     setSuccess('');
     try {
-      // Fetch all users for mapping userId to username/email
-      const usersRes = await fetch(`${API_BASE_URL}/users`);
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+      // Fetch all users for mapping userId to username/email (admin-only endpoint)
+      const usersRes = await fetch(`${API_BASE_URL}/users/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!usersRes.ok) throw new Error('Failed to fetch users');
       const users = await usersRes.json();
       const usersMapTemp = {};
@@ -47,8 +53,10 @@ const Withdrawals = () => {
       });
       setUsersMap(usersMapTemp);
 
-      // Fetch all withdrawal requests
-      const withdrawalsRes = await fetch(`${API_BASE_URL}/withdrawalRequests`);
+      // Fetch all withdrawal requests (admin-only endpoint)
+      const withdrawalsRes = await fetch(`${API_BASE_URL}/withdrawalRequests/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!withdrawalsRes.ok) throw new Error('Failed to fetch withdrawal requests');
       const withdrawalsData = await withdrawalsRes.json();
 
@@ -58,10 +66,11 @@ const Withdrawals = () => {
     } catch (err) {
       setError(err.message || 'An unknown error occurred while fetching withdrawals.');
       setWithdrawals([]);
+      addToast('Error fetching withdrawals.', 'error');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addToast]);
 
   useEffect(() => {
     fetchWithdrawals();
@@ -74,22 +83,27 @@ const Withdrawals = () => {
     setSuccess('');
     const userEmail = usersMap[withdrawal.userId]?.email;
     try {
-      // 1. Update withdrawal status
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
+
+      // 1. Update withdrawal status (admin-only)
       const res = await fetch(`${API_BASE_URL}/withdrawalRequests/${withdrawal.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: 'confirmed' }),
       });
       if (!res.ok) throw new Error('Failed to approve withdrawal.');
 
-      // 2. Update user balance
-      const userRes = await fetch(`${API_BASE_URL}/users/${withdrawal.userId}`);
+      // 2. Update user balance (admin-only)
+      const userRes = await fetch(`${API_BASE_URL}/users/${withdrawal.userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!userRes.ok) throw new Error('Failed to fetch user for balance update.');
       const user = await userRes.json();
       const newBalance = (user.balance || 0) - parseFloat(withdrawal.amount);
       const balRes = await fetch(`${API_BASE_URL}/users/${withdrawal.userId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ balance: newBalance }),
       });
       if (!balRes.ok) throw new Error('Failed to update user balance.');
@@ -107,9 +121,11 @@ const Withdrawals = () => {
           });
       }
       setSuccess(`Withdrawal for ${usersMap[withdrawal.userId]?.username || withdrawal.userId} approved and balance updated.`);
+      addToast('Withdrawal approved!', 'success');
       fetchWithdrawals();
     } catch (err) {
       setError(err.message);
+      addToast(err.message, 'error');
     } finally {
       setConfirmingId(null);
     }
@@ -121,16 +137,20 @@ const Withdrawals = () => {
     setError('');
     setSuccess('');
     try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authorization token found. Please log in again.');
       const res = await fetch(`${API_BASE_URL}/withdrawalRequests/${withdrawal.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: 'cancelled' }),
       });
       if (!res.ok) throw new Error('Failed to cancel withdrawal.');
       setSuccess(`Withdrawal for ${usersMap[withdrawal.userId]?.username || withdrawal.userId} cancelled.`);
+      addToast('Withdrawal cancelled.', 'success');
       fetchWithdrawals();
     } catch (err) {
       setError(err.message);
+      addToast(err.message, 'error');
     } finally {
       setConfirmingId(null);
     }

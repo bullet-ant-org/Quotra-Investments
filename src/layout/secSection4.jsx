@@ -1,5 +1,5 @@
 import React from 'react'
-import Nonee2 from '../assets/nonee2.jpg'
+import Whiteman from '../assets/whiteman.jpg'
 import { Link } from 'react-router-dom';
 
 const secSection4 = () => {
@@ -8,17 +8,15 @@ const secSection4 = () => {
       <div className="container-fluid balablu pt-5 py-lg-5">
         <div className="row justify-content-center">
           <div className="col-md-5 text-center">
-            <img src={Nonee2} alt="" className="image-fluid text-center" height={360}/>
+            <img src={Whiteman} alt="" className="image-fluid text-center" height={300}/>
           </div>
-          <div className="col-md-5 text-center text-md-start">
-            <h1>
-              <div className="display-6 text-primary">Let Your Money Work and Talk For You</div>
-              <p className='text-dark'>Working all day for weeks to get paid once, most of us will argue that it is not enough,
-                that is why we bring this Goodnews to you. <br /> We are now Worldwide, From any country, and state, any region in the world, You are just Decision away from a Good Life.
-                <br />You can check out our services today to find out what we are about and what we do
-              </p>
-              <Link to="/services" className="btn-sm btn-primary">Services</Link>
-            </h1>
+          <div className="col-md-5 text-center text-md-start mt-5 mt-md-0">
+
+              <div className="display-6 text-dark">At your Service</div>
+              <p className='text-dark my-5'>we are here to help you with your financial journey. Whether you're looking to invest, save, or plan for the future, our team is ready to assist you every step of the way.</p>
+              
+              <Link to="/services" className="btn btn-primary my-2 rounded-pill">Services</Link>
+
           </div>
           
         </div>

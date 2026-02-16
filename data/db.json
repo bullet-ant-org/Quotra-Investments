@@ -1,0 +1,570 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "username": "admin",
+      "email": "totoadmin@gmail.com",
+      "profilePictureUrl": "https://example.com/images/avatar_admin.png",
+      "role": "admin",
+      "password": "admin",
+      "balance": 500
+    },
+    {
+      "id": "user2",
+      "username": "user",
+      "email": "classicesteban68@gmail.com",
+      "profilePictureUrl": "https://example.com/images/avatar_admin.png",
+      "role": "user",
+      "password": "user",
+      "fullName": "Divinelight Akajiaku",
+      "phone": "08105312024",
+      "withdrawalAccount": "sdfghbc",
+      "profileImageUrl": "https://res.cloudinary.com/djzi0scln/image/upload/v1755008070/rx8d5z8qqdtdgblea6m9.jpg",
+      "balance": 23756,
+      "last_login": "2025-08-15T00:40:04.807Z"
+    },
+    {
+      "id": "c55f",
+      "username": "keagan",
+      "email": "classicesteban86@gmail.com",
+      "password": "12345678",
+      "profileImageUrl": "",
+      "role": "user",
+      "balance": 0,
+      "totalIncome": 0,
+      "totalBalance": 0,
+      "accountStatus": "pending_verification",
+      "otp": "489680",
+      "otpExpires": "2025-08-15T01:38:45.891Z"
+    }
+  ],
+  "assets": [
+    {
+      "name": "Not Bad",
+      "priceRange": "500",
+      "features": [
+        {
+          "text": "56tyuiuoi",
+          "included": true
+        },
+        {
+          "text": "maximum pips",
+          "included": true
+        }
+      ],
+      "profitPotential": 3,
+      "tradeDurationDays": null,
+      "buttonText": "Choose Plan",
+      "isPopular": true,
+      "period": "Days",
+      "tradeTime": "7",
+      "id": "691d"
+    }
+  ],
+  "assetOrders": [
+    {
+      "id": "a84b",
+      "orderId": "ord_cy9cz6",
+      "userId": "user2",
+      "assetId": "691d",
+      "orderDate": "2025-08-14T22:25:54.411Z",
+      "status": "approved",
+      "priceAtOrder": 500,
+      "invitedByUserId": null,
+      "editorDiscountApplied": false
+    }
+  ],
+  "loanTypes": [
+    {
+      "id": "37d1",
+      "name": "Undead1",
+      "interestRate": "2.99%",
+      "term": "1 - 5 years",
+      "amountRange": "$1000 - $50,000",
+      "quota": "6000",
+      "descriptionPoints": [
+        {
+          "text": "yugijok",
+          "included": true
+        }
+      ],
+      "applicationFee": 60,
+      "buttonText": "Apply Now",
+      "buttonLink": "/dashboard/loans-checkout"
+    }
+  ],
+  "adminDashboardSummary": {},
+  "adminSettings": [
+    {
+      "id": "globalAdminSettings",
+      "checkoutWalletAddress": "",
+      "bitcoin": {
+        "blockchain": "BTC",
+        "walletAddress": "totowaterbtc"
+      },
+      "ethereum": {
+        "blockchain": "ERC20 (ETH)",
+        "walletAddress": "totowatereth"
+      },
+      "usdt": {
+        "blockchain": "TRC20 (Tron)",
+        "walletAddress": "totowaterusdt"
+      }
+    }
+  ],
+  "transactions": [],
+  "depositRequests": [
+    {
+      "id": "801c",
+      "userId": "user2",
+      "username": "user",
+      "crypto": "bitcoin",
+      "blockchain": "BTC",
+      "walletAddress": "totowaterbtc",
+      "paymentMethod": "crypto",
+      "amount": 600,
+      "transactionId": "USER_WILL_PROVIDE_LATER_OR_VIA_SUPPORT",
+      "requestDate": "2025-08-11T03:38:49.617Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "0144",
+      "userId": "user2",
+      "username": "user",
+      "crypto": "bitcoin",
+      "blockchain": "BTC",
+      "walletAddress": "totowaterbtc",
+      "paymentMethod": "crypto",
+      "amount": 5678,
+      "transactionId": "USER_WILL_PROVIDE_LATER_OR_VIA_SUPPORT",
+      "requestDate": "2025-08-12T14:59:36.411Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "74c4",
+      "userId": "user2",
+      "username": "user",
+      "crypto": "bitcoin",
+      "blockchain": "BTC",
+      "walletAddress": "totowaterbtc",
+      "paymentMethod": "crypto",
+      "amount": 500,
+      "transactionId": "USER_WILL_PROVIDE_LATER_OR_VIA_SUPPORT",
+      "requestDate": "2025-08-14T23:53:07.707Z",
+      "status": "confirmed"
+    }
+  ],
+  "withdrawalRequests": [
+    {
+      "id": "d6a1",
+      "userId": "user2",
+      "username": "user",
+      "amount": 700,
+      "walletAddress": "sdfghbc",
+      "requestDate": "2025-08-14T18:48:01.614Z",
+      "status": "confirmed"
+    },
+    {
+      "id": "5a32",
+      "userId": "user2",
+      "username": "user",
+      "amount": 700,
+      "walletAddress": "sdfghbc",
+      "requestDate": "2025-08-15T00:57:53.973Z",
+      "status": "pending"
+    }
+  ],
+  "activities": [
+    {
+      "id": "6e0e",
+      "userId": "user1",
+      "timestamp": "2025-08-01T14:52:03.103Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.144",
+        "successful": true
+      }
+    },
+    {
+      "id": "0784",
+      "userId": "user2",
+      "timestamp": "2025-08-02T14:26:06.571Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.159",
+        "successful": true
+      }
+    },
+    {
+      "id": "9e11",
+      "userId": "user2",
+      "timestamp": "2025-08-02T14:28:17.750Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.8",
+        "successful": true
+      }
+    },
+    {
+      "id": "bba6",
+      "userId": "user1",
+      "timestamp": "2025-08-02T15:05:02.411Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.200",
+        "successful": true
+      }
+    },
+    {
+      "id": "8050",
+      "userId": "user2",
+      "timestamp": "2025-08-02T15:14:07.058Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.190",
+        "successful": true
+      }
+    },
+    {
+      "id": "ba6d",
+      "userId": "user2",
+      "timestamp": "2025-08-02T15:22:32.835Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.123",
+        "successful": true
+      }
+    },
+    {
+      "id": "d414",
+      "userId": "user2",
+      "timestamp": "2025-08-04T10:25:47.895Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.223",
+        "successful": true
+      }
+    },
+    {
+      "id": "f8ae",
+      "userId": "user2",
+      "timestamp": "2025-08-04T11:33:28.485Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.219",
+        "successful": true
+      }
+    },
+    {
+      "id": "8a80",
+      "userId": "user2",
+      "timestamp": "2025-08-04T11:37:11.335Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.241",
+        "successful": true
+      }
+    },
+    {
+      "id": "69ed",
+      "userId": "user2",
+      "timestamp": "2025-08-04T11:47:01.736Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.75",
+        "successful": true
+      }
+    },
+    {
+      "id": "5f43",
+      "userId": "user1",
+      "timestamp": "2025-08-08T09:44:28.618Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.61",
+        "successful": true
+      }
+    },
+    {
+      "id": "4efd",
+      "userId": "user2",
+      "timestamp": "2025-08-11T03:07:21.565Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.195",
+        "successful": true
+      }
+    },
+    {
+      "id": "5482",
+      "userId": "user2",
+      "timestamp": "2025-08-11T03:20:11.795Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.157",
+        "successful": true
+      }
+    },
+    {
+      "id": "5e70",
+      "userId": "user2",
+      "timestamp": "2025-08-11T03:26:50.187Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.113",
+        "successful": true
+      }
+    },
+    {
+      "id": "57c8",
+      "userId": "user2",
+      "timestamp": "2025-08-11T11:19:24.048Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.245",
+        "successful": true
+      }
+    },
+    {
+      "id": "ea83",
+      "userId": "user2",
+      "timestamp": "2025-08-11T12:41:48.723Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.250",
+        "successful": true
+      }
+    },
+    {
+      "id": "7bdb",
+      "userId": "user2",
+      "timestamp": "2025-08-12T13:32:10.427Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.199",
+        "successful": true
+      }
+    },
+    {
+      "id": "752c",
+      "userId": "user1",
+      "timestamp": "2025-08-12T15:04:28.820Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.121",
+        "successful": true
+      }
+    },
+    {
+      "id": "1752",
+      "userId": "user1",
+      "timestamp": "2025-08-12T21:21:15.513Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.183",
+        "successful": true
+      }
+    },
+    {
+      "id": "3579",
+      "userId": "user2",
+      "timestamp": "2025-08-13T14:03:18.320Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.72",
+        "successful": true
+      }
+    },
+    {
+      "id": "d1ab",
+      "userId": "user2",
+      "timestamp": "2025-08-14T18:47:31.668Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.32",
+        "successful": true
+      }
+    },
+    {
+      "id": "57c3",
+      "userId": "user1",
+      "timestamp": "2025-08-14T18:50:52.946Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.178",
+        "successful": true
+      }
+    },
+    {
+      "id": "7395",
+      "userId": "user2",
+      "timestamp": "2025-08-14T19:19:20.855Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.0",
+        "successful": true
+      }
+    },
+    {
+      "id": "c9fb",
+      "userId": "user1",
+      "timestamp": "2025-08-14T19:26:48.458Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.211",
+        "successful": true
+      }
+    },
+    {
+      "id": "275c",
+      "userId": "user1",
+      "timestamp": "2025-08-14T19:30:08.512Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.248",
+        "successful": true
+      }
+    },
+    {
+      "id": "1df8",
+      "userId": "user2",
+      "timestamp": "2025-08-14T19:56:11.785Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.78",
+        "successful": true
+      }
+    },
+    {
+      "id": "74d2",
+      "userId": "user2",
+      "timestamp": "2025-08-14T20:07:44.216Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.172",
+        "successful": true
+      }
+    },
+    {
+      "id": "157c",
+      "userId": "user2",
+      "timestamp": "2025-08-14T22:13:47.770Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.107",
+        "successful": true
+      }
+    },
+    {
+      "id": "6ffc",
+      "userId": "user1",
+      "timestamp": "2025-08-14T22:15:55.415Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.153",
+        "successful": true
+      }
+    },
+    {
+      "id": "76df",
+      "userId": "user2",
+      "timestamp": "2025-08-14T22:19:52.480Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.202",
+        "successful": true
+      }
+    },
+    {
+      "id": "eb1f",
+      "userId": "user1",
+      "timestamp": "2025-08-14T22:22:23.731Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.26",
+        "successful": true
+      }
+    },
+    {
+      "id": "8574",
+      "userId": "user2",
+      "timestamp": "2025-08-14T22:25:00.990Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.133",
+        "successful": true
+      }
+    },
+    {
+      "id": "ccf7",
+      "userId": "user1",
+      "timestamp": "2025-08-14T23:08:22.690Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.213",
+        "successful": true
+      }
+    },
+    {
+      "id": "ca6a",
+      "userId": "user2",
+      "timestamp": "2025-08-14T23:52:55.283Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.12",
+        "successful": true
+      }
+    },
+    {
+      "id": "e0fe",
+      "userId": "user1",
+      "timestamp": "2025-08-15T00:01:59.830Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.207",
+        "successful": true
+      }
+    },
+    {
+      "id": "04cb",
+      "userId": "user2",
+      "timestamp": "2025-08-15T00:35:10.526Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.1",
+        "successful": true
+      }
+    },
+    {
+      "id": "37bb",
+      "userId": "user1",
+      "timestamp": "2025-08-15T00:35:55.210Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.118",
+        "successful": true
+      }
+    },
+    {
+      "id": "8bea",
+      "userId": "user2",
+      "timestamp": "2025-08-15T00:40:04.877Z",
+      "activityType": "login",
+      "details": {
+        "ipAddress": "192.168.1.225",
+        "successful": true
+      }
+    }
+  ],
+  "bonuses": [
+    {
+      "id": "2d3b",
+      "userId": "user2",
+      "username": "user",
+      "amount": 5000,
+      "reason": "fghyjhgffg",
+      "dateAdded": "2025-08-14T22:18:29.421Z"
+    }
+  ],
+  "loanOrders": []
+}
